@@ -12,4 +12,90 @@ html {
   font-family: "DM Sans", sans-serif;
   color: #1A1410;
   background-color: #FAF6EF;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------------------------------------------------------------
+   Shared foundation — extracted from index.html verbatim, per
+   DESIGN_RULES.md Section 4.
+------------------------------------------------------------------ */
+
+:root {
+  --cream: #FAF6EF;
+  --cream-warm: #F2E9DB;
+  --crimson: #9B1B30;
+  --crimson-deep: #6E1322;
+  --crimson-soft: #F4DCDF;
+  --ink: #1A1410;
+  --ink-soft: #4A4038;
+  --gold: #B8924A;
+  --white: #FFFFFF;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-label: 'Space Grotesk', sans-serif;
+  --pad-x: clamp(1.5rem, 5vw, 4.5rem);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============ SADU PATTERN — signature divider ============
+   The real one — repeating diagonal weave, not a zigzag SVG.
+   Use this exact class everywhere a section divider is needed. */
+.sadu-strip {
+  height: 10px;
+  width: 100%;
+  background: repeating-linear-gradient(
+    135deg,
+    var(--crimson) 0px 10px,
+    var(--cream) 10px 20px,
+    var(--gold) 20px 24px,
+    var(--cream) 24px 34px,
+    var(--ink) 34px 38px,
+    var(--cream) 38px 48px
+  );
+}
+
+/* ============ SCROLL REVEAL ============ */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+}
+.reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+.d1 { transition-delay: 0.08s; }
+.d2 { transition-delay: 0.16s; }
+.d3 { transition-delay: 0.24s; }
+.d4 { transition-delay: 0.32s; }
+
+/* ============ CUSTOM CURSOR ============
+   Rendered once in App.jsx via <CustomCursor />, not per-page. */
+#cur-dot, #cur-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+}
+#cur-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--crimson);
+  transition: width 0.25s var(--ease), height 0.25s var(--ease), background 0.25s;
+}
+#cur-ring {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--crimson);
+  transition: width 0.25s var(--ease), height 0.25s var(--ease), border-color 0.25s;
+}
+#cur-dot.expand { width: 10px; height: 10px; background: var(--cream); }
+#cur-ring.expand { width: 54px; height: 54px; border-color: var(--crimson); }
+@media (hover: none), (pointer: coarse) {
+  #cur-dot, #cur-ring { display: none; }
 }
