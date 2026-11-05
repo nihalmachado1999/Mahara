@@ -1,4 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { supabase } from "../lib/supabaseClient";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -165,6 +167,7 @@ function Segmented({ options, value, onChange }) {
 }
 
 export default function ItineraryPlanner() {
+  const location = useLocation();
   const [days, setDays] = useState(3);
   const [startDate, setStartDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [budgetTier, setBudgetTier] = useState("comfort");
@@ -181,6 +184,50 @@ export default function ItineraryPlanner() {
   const [reasonDrafts, setReasonDrafts] = useState({});
   const [replanningDay, setReplanningDay] = useState(null);
   const [replanError, setReplanError] = useState({});
+
+  const [openSwapKey, setOpenSwapKey] = useState(null);
+  const [swapReasonDrafts, setSwapReasonDrafts] = useState({});
+  const [swappingKey, setSwappingKey] = useState(null);
+  const [swapError, setSwapError] = useState({});
+
+  // "idle" | "saving" | "saved" | "needs-login" | "error"
+  const [saveState, setSaveState] = useState("idle");
+  const [saveError, setSaveError] = useState("");
+
+  // Arriving here from Profile's "View" button — render the saved trip
+  // directly instead of showing the empty planning form.
+  useEffect(() => {
+    if (location.state?.loadedItinerary) {
+      setItinerary(location.state.loadedItinerary);
+      setStatus("success");
+    }
+  }, [location.state]);
+
+  async function handleSaveItinerary() {
+    setSaveState("saving");
+    setSaveError("");
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setSaveState("needs-login");
+      return;
+    }
+
+    const { error: insertError } = await supabase
+      .from("saved_itineraries")
+      .insert({ user_id: user.id, itinerary });
+
+    if (insertError) {
+      setSaveState("error");
+      setSaveError(insertError.message);
+      return;
+    }
+
+    setSaveState("saved");
+  }
 
   const toggleInterest = (id) => {
     setInterests((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
@@ -270,6 +317,73 @@ export default function ItineraryPlanner() {
       setReplanError((prev) => ({ ...prev, [dayIdx]: err.message || "Something went wrong replanning this day." }));
     } finally {
       setReplanningDay(null);
+    }
+  }
+
+  async function handleSwapActivity(dayIdx, aIdx) {
+    const key = `${dayIdx}-${aIdx}`;
+    const day = itinerary.days[dayIdx];
+    const activityToReplace = day.activities[aIdx];
+    const otherActivities = day.activities.filter((_, i) => i !== aIdx);
+
+    setSwappingKey(key);
+    setSwapError((prev) => ({ ...prev, [key]: null }));
+
+    const payload = {
+      day: day.day,
+      dayTitle: day.title,
+      activityToReplace,
+      otherActivities,
+      reason: swapReasonDrafts[key] || "wants something different",
+      budget: budgetTier,
+      interests,
+      pace,
+      familyType,
+    };
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/swap-activity`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`Edge function returned ${res.status}. ${text.slice(0, 200)}`);
+      }
+
+      const data = await res.json();
+      if (!data.activity) {
+        throw new Error("Got a response back but couldn't find a replacement activity in it.");
+      }
+
+      setItinerary((prev) => {
+        const nextDays = prev.days.map((d, dIdx) => {
+          if (dIdx !== dayIdx) return d;
+          const nextActivities = d.activities.map((a, i) =>
+            i === aIdx ? { ...data.activity, done: false } : a,
+          );
+          return { ...d, activities: nextActivities };
+        });
+        return {
+          ...prev,
+          days: nextDays,
+          totalEstimatedCost: recomputeItineraryTotal(nextDays),
+        };
+      });
+
+      setOpenSwapKey(null);
+      setSwapReasonDrafts((prev) => ({ ...prev, [key]: "" }));
+    } catch (err) {
+      console.error("swap-activity failed:", err);
+      setSwapError((prev) => ({ ...prev, [key]: err.message || "Something went wrong swapping this activity." }));
+    } finally {
+      setSwappingKey(null);
     }
   }
 
@@ -566,48 +680,108 @@ export default function ItineraryPlanner() {
                     )}
 
                     <div className="space-y-3">
-                      {(day.activities || []).map((act, aIdx) => (
-                        <div key={aIdx} className="flex gap-3">
-                          <input
-                            type="checkbox"
-                            className="activity-checkbox"
-                            checked={!!act.done}
-                            onChange={() => toggleActivityDone(dayIdx, aIdx)}
-                            aria-label={`Mark "${act.title}" as done`}
-                          />
-                          <div className="mt-1 flex-shrink-0">
-                            <TimeIcon time={act.time} />
-                          </div>
-                          <div className="flex-1" style={{ opacity: act.done ? 0.5 : 1 }}>
-                            <div className="flex items-baseline justify-between gap-2">
-                              <span
-                                className="font-heading text-sm font-semibold"
-                                style={{
-                                  color: "#1A1410",
-                                  textDecoration: act.done ? "line-through" : "none",
-                                }}
-                              >
-                                {act.title}
-                              </span>
-                              {typeof act.costEstimate === "number" && (
-                                <span className="font-label text-[11px]" style={{ color: "rgba(26,20,16,0.5)" }}>
-                                  ~{act.costEstimate} BD
+                      {(day.activities || []).map((act, aIdx) => {
+                        const swapKey = `${dayIdx}-${aIdx}`;
+                        return (
+                          <div key={aIdx} className="flex gap-3">
+                            <input
+                              type="checkbox"
+                              className="activity-checkbox"
+                              checked={!!act.done}
+                              onChange={() => toggleActivityDone(dayIdx, aIdx)}
+                              aria-label={`Mark "${act.title}" as done`}
+                            />
+                            <div className="mt-1 flex-shrink-0">
+                              <TimeIcon time={act.time} />
+                            </div>
+                            <div className="flex-1" style={{ opacity: act.done ? 0.5 : 1 }}>
+                              <div className="flex items-baseline justify-between gap-2">
+                                <span
+                                  className="font-heading text-sm font-semibold"
+                                  style={{
+                                    color: "#1A1410",
+                                    textDecoration: act.done ? "line-through" : "none",
+                                  }}
+                                >
+                                  {act.title}
                                 </span>
+                                {typeof act.costEstimate === "number" && (
+                                  <span className="font-label text-[11px]" style={{ color: "rgba(26,20,16,0.5)" }}>
+                                    ~{act.costEstimate} BD
+                                  </span>
+                                )}
+                              </div>
+                              {act.description && (
+                                <p className="font-body text-xs mt-0.5" style={{ color: "rgba(26,20,16,0.7)" }}>
+                                  {act.description}
+                                </p>
+                              )}
+                              {act.location && (
+                                <p className="font-label text-[10px] mt-1" style={{ color: "#B8924A" }}>
+                                  {act.location}
+                                </p>
+                              )}
+
+                              {!act.done && (
+                                <div className="mt-2">
+                                  {openSwapKey === swapKey ? (
+                                    <div className="space-y-1.5">
+                                      <input
+                                        type="text"
+                                        value={swapReasonDrafts[swapKey] || ""}
+                                        onChange={(e) =>
+                                          setSwapReasonDrafts((prev) => ({ ...prev, [swapKey]: e.target.value }))
+                                        }
+                                        placeholder="Why swap this? (optional)"
+                                        className="font-body text-xs px-2.5 py-1.5 rounded-[8px] border w-full"
+                                        style={{ borderColor: "rgba(26,20,16,0.2)", color: "#1A1410", background: "transparent" }}
+                                      />
+                                      <div className="flex gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleSwapActivity(dayIdx, aIdx)}
+                                          disabled={swappingKey === swapKey}
+                                          className="font-heading text-[11px] font-semibold px-2.5 py-1.5 rounded-lg"
+                                          style={{
+                                            background: "#9B1B30",
+                                            color: "#FAF6EF",
+                                            opacity: swappingKey === swapKey ? 0.6 : 1,
+                                          }}
+                                        >
+                                          {swappingKey === swapKey ? "Swapping…" : "Confirm swap"}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => setOpenSwapKey(null)}
+                                          disabled={swappingKey === swapKey}
+                                          className="font-heading text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border"
+                                          style={{ borderColor: "#1A1410", color: "#1A1410" }}
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                      {swapError[swapKey] && (
+                                        <p className="font-body text-[11px]" style={{ color: "#9B1B30" }}>
+                                          {swapError[swapKey]}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => setOpenSwapKey(swapKey)}
+                                      className="font-label text-[10px] font-semibold"
+                                      style={{ color: "#B8924A" }}
+                                    >
+                                      Swap this
+                                    </button>
+                                  )}
+                                </div>
                               )}
                             </div>
-                            {act.description && (
-                              <p className="font-body text-xs mt-0.5" style={{ color: "rgba(26,20,16,0.7)" }}>
-                                {act.description}
-                              </p>
-                            )}
-                            {act.location && (
-                              <p className="font-label text-[10px] mt-1" style={{ color: "#B8924A" }}>
-                                {act.location}
-                              </p>
-                            )}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     <div className="mt-5 pt-4" style={{ borderTop: "1px solid rgba(26,20,16,0.08)" }}>
@@ -703,17 +877,57 @@ export default function ItineraryPlanner() {
               </div>
             )}
 
-            <button
-              type="button"
-              onClick={() => {
-                setStatus("idle");
-                setItinerary(null);
-              }}
-              className="font-heading text-sm font-semibold mt-6 px-4 py-2 rounded-lg border"
-              style={{ borderColor: "#1A1410", color: "#1A1410" }}
-            >
-              Plan another trip
-            </button>
+            <div className="mt-6 flex items-center gap-4 flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  setStatus("idle");
+                  setItinerary(null);
+                  setSaveState("idle");
+                }}
+                className="font-heading text-sm font-semibold px-4 py-2 rounded-lg border"
+                style={{ borderColor: "#1A1410", color: "#1A1410" }}
+              >
+                Plan another trip
+              </button>
+
+              {saveState !== "saved" && saveState !== "needs-login" && (
+                <button
+                  type="button"
+                  onClick={handleSaveItinerary}
+                  disabled={saveState === "saving"}
+                  className="font-heading text-sm font-semibold px-4 py-2 rounded-lg"
+                  style={{
+                    background: "#9B1B30",
+                    color: "#FAF6EF",
+                    opacity: saveState === "saving" ? 0.6 : 1,
+                  }}
+                >
+                  {saveState === "saving" ? "Saving..." : "Save this itinerary"}
+                </button>
+              )}
+
+              {saveState === "saved" && (
+                <span className="font-body text-sm" style={{ color: "#4A4038" }}>
+                  Saved to your profile
+                </span>
+              )}
+
+              {saveState === "needs-login" && (
+                <span className="font-body text-sm" style={{ color: "#4A4038" }}>
+                  <a href="/login" style={{ color: "#9B1B30", fontWeight: 600 }}>
+                    Log in
+                  </a>{" "}
+                  to save this trip
+                </span>
+              )}
+            </div>
+
+            {saveState === "error" && (
+              <p className="font-body text-xs mt-2" style={{ color: "#9B1B30" }}>
+                {saveError}
+              </p>
+            )}
           </>
         )}
       </div>

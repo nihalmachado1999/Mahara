@@ -428,3 +428,8 @@ entrypoint = "./functions/generate-itinerary/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/replan-day/index.ts"
+
+[functions.swap-activity]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/swap-activity/index.ts"

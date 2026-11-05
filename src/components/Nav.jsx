@@ -1,19 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-
-/* ---------------------------------------------------------------
-   Shared nav — CSS values copied from index.html's .nav system
-   verbatim (72px height, ink bg, same colors/spacing/animation
-   timing), per DESIGN_RULES.md Section 4. Dropdown behavior is new
-   — the original had none — built to match the same visual language.
-
-   Breakpoint: 640px, matching the real breakpoint in index.html
-   (not 768/900 — checked the actual file rather than guess).
-
-   Real routes reconciled against App.jsx: added Events (a real route
-   missing from the original nav), dropped "Things To Do" (was in the
-   original nav, has no matching route).
------------------------------------------------------------------- */
+import { supabase } from "../lib/supabaseClient";
 
 const DESTINATIONS_MENU = [
   { to: "/destinations", label: "Browse Destinations" },
@@ -79,7 +66,7 @@ function DesktopDropdown({ label, items, isActive }) {
       {open && (
         <div className="nav__dropdown-panel">
           {items.map((item) => (
-            <a
+            
               key={item.to}
               href={item.to}
               className="nav__dropdown-item"
@@ -117,6 +104,7 @@ function MobileAccordion({ label, items, onNavigate }) {
 
 export default function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const location = useLocation();
   const isDestinationsActive = location.pathname === "/destinations" || location.pathname === "/pearling-path";
   const isPlanActive = location.pathname === "/plan" || location.pathname === "/stories";
@@ -124,6 +112,21 @@ export default function Nav() {
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const accountHref = user ? "/profile" : "/login";
+  const accountLabel = user ? "My Profile" : "Log In / Sign Up";
 
   return (
     <>
@@ -194,7 +197,7 @@ export default function Nav() {
         <div className="nav__right">
           <button className="nav__icon-btn" aria-label="Search"><SearchIcon /></button>
           <div className="nav__lang"><GlobeIcon />EN</div>
-          <a href="/login" className="nav__cta">Log In / Sign Up</a>
+          <a href={accountHref} className="nav__cta">{accountLabel}</a>
         </div>
 
         <button
@@ -219,7 +222,7 @@ export default function Nav() {
         <MobileAccordion label="Plan Your Trip" items={PLAN_MENU} onNavigate={() => setMobileOpen(false)} />
 
         <div className="nav__mobile__divider"></div>
-        <a href="/login" className="nav__cta" onClick={() => setMobileOpen(false)}>Log In / Sign Up</a>
+        <a href={accountHref} className="nav__cta" onClick={() => setMobileOpen(false)}>{accountLabel}</a>
       </div>
     </>
   );

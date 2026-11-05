@@ -4,11 +4,64 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+async function checkRateLimit(
+  req: Request,
+  limit = 10,
+  windowSeconds = 60,
+): Promise<boolean> {
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+  const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+    console.log("STEP: rate limit check skipped, missing built-in config");
+    return true;
+  }
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    "unknown";
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/check_rate_limit`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+      },
+      body: JSON.stringify({
+        p_key: ip,
+        p_limit: limit,
+        p_window_seconds: windowSeconds,
+      }),
+    });
+    if (!res.ok) {
+      console.log("STEP: rate limit RPC failed, failing open");
+      return true;
+    }
+    return (await res.json()) === true;
+  } catch {
+    console.log("STEP: rate limit check errored, failing open");
+    return true;
+  }
+}
+
 Deno.serve(async (req) => {
   console.log("STEP 1: replan-day invoked");
 
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (!(await checkRateLimit(req))) {
+    console.log("STEP: rate limit exceeded, rejecting");
+    return new Response(
+      JSON.stringify({
+        error: "Too many requests — please wait a moment and try again.",
+      }),
+      {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   }
 
   try {

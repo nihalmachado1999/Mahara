@@ -4,6 +4,46 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+async function checkRateLimit(
+  req: Request,
+  limit = 10,
+  windowSeconds = 60,
+): Promise<boolean> {
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+  const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+    console.log("STEP: rate limit check skipped, missing built-in config");
+    return true;
+  }
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    "unknown";
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/check_rate_limit`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+      },
+      body: JSON.stringify({
+        p_key: ip,
+        p_limit: limit,
+        p_window_seconds: windowSeconds,
+      }),
+    });
+    if (!res.ok) {
+      console.log("STEP: rate limit RPC failed, failing open");
+      return true;
+    }
+    return (await res.json()) === true;
+  } catch {
+    console.log("STEP: rate limit check errored, failing open");
+    return true;
+  }
+}
+
 Deno.serve(async (req) => {
   console.log("STEP 1: function invoked");
 
@@ -11,8 +51,21 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  if (!(await checkRateLimit(req))) {
+    console.log("STEP: rate limit exceeded, rejecting");
+    return new Response(
+      JSON.stringify({
+        error: "Too many requests — please wait a moment and try again.",
+      }),
+      {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
+  }
+  const { days, startDate, budget, interests, pace, familyType } = await req
+    .json();
   try {
-    const { days, budget, interests, pace, familyType } = await req.json();
     console.log("STEP 2: request body parsed", {
       days,
       budget,
@@ -62,10 +115,70 @@ Deno.serve(async (req) => {
       }
     }
 
+    const RAMADAN_RANGES = [
+      { start: "2026-02-18", end: "2026-03-19" },
+      { start: "2027-02-07", end: "2027-03-09" },
+    ];
+
+    function getCausewayRamadanContext(
+      startDateStr: string,
+      days: number,
+    ): string {
+      if (!startDateStr) return "";
+
+      const start = new Date(startDateStr + "T00:00:00");
+      if (isNaN(start.getTime())) return "";
+
+      const notes: string[] = [];
+      const causewayDays: string[] = [];
+      let ramadanHit = false;
+
+      for (let i = 0; i < days; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i);
+        const dayOfWeek = d.getDay(); // 4 = Thu, 5 = Fri, 6 = Sat
+        const dateStr = d.toISOString().split("T")[0];
+        const label = d.toLocaleDateString("en-US", {
+          weekday: "long",
+          month: "short",
+          day: "numeric",
+        });
+
+        if (dayOfWeek === 4 || dayOfWeek === 5 || dayOfWeek === 6) {
+          causewayDays.push(label);
+        }
+        for (const range of RAMADAN_RANGES) {
+          if (dateStr >= range.start && dateStr <= range.end) ramadanHit = true;
+        }
+      }
+
+      if (causewayDays.length > 0) {
+        notes.push(
+          `This trip includes ${
+            causewayDays.join(", ")
+          } — the King Fahd Causeway to Saudi Arabia draws a surge of weekend visitors Thursday through Saturday, causing heavier traffic and crowds at popular sites on those specific days. Suggest less congested alternatives or better timing for those days where reasonable.`,
+        );
+      }
+
+      if (ramadanHit) {
+        notes.push(
+          `Part or all of this trip falls during Ramadan. Many restaurants and cafes are closed or limited during daylight hours; shift dining toward after sunset and later evening; visitors should dress and behave respectfully in public during fasting hours; some attractions may have reduced hours. Reflect this in the itinerary's timing and choices.`,
+        );
+      }
+
+      return notes.join(" ");
+    }
+
     const heatContext = await getBahrainHeatContext();
     console.log(
       "STEP 3B: heat context:",
       heatContext || "(unavailable, skipped)",
+    );
+
+    const causewayRamadanContext = getCausewayRamadanContext(startDate, days);
+    console.log(
+      "STEP 3C: causeway/Ramadan context:",
+      causewayRamadanContext || "(none)",
     );
 
     async function callGeminiWithRetry(
@@ -148,7 +261,8 @@ currency symbols.`;
     const userPrompt = `Build a ${days}-day Bahrain itinerary.
 Traveler type: ${familyType}. Budget level: ${budget}.
 Interests: ${interests.join(", ")}. Pace: ${pace}.
-${heatContext}`;
+${heatContext}
+${causewayRamadanContext}`;
 
     // Gemini's native structured output — this constrains what the model can
     // generate at the token level, not just a formatting request in the
