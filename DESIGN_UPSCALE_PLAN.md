@@ -538,13 +538,22 @@ to, and the reference for anyone changing it later.
 - `.planner-grid`: two columns at `min-width: 900px`
   (`minmax(320px, 400px) minmax(0, 1fr)`), one column below. Form first in
   source order.
-- The form column is sticky under the nav only when the viewport is also at
-  least 820px tall, so a short laptop never traps the submit button.
-- Below 900px, submitting scrolls the results region into view (the form
-  would otherwise hide the loading state below the fold). Same on arriving
-  with a saved trip.
+- The form is about 910px tall, taller than most viewports. So:
+  - The form column is pinned under the nav only at `min-height: 1080px`,
+    where all of it fits. Pinning it on a shorter screen would trap the
+    submit button below the fold.
+  - The short states of the results column (idle, loading, error) are
+    wrapped in `.planner-results__pin`, which is `position: sticky`. They
+    stay beside whichever part of the form is on screen. Without this,
+    pressing Generate at the bottom of the form starts a loading state that
+    is above the fold and nobody sees it.
+  - When a result or error arrives and the top of the results column has
+    been scrolled past, the column is scrolled into view (`revealResults`).
+- Below 900px the results sit under the form, so every status change
+  scrolls them into view, including arriving with a saved trip.
 - Idle state on desktop: the results column shows an empty state with the
-  pearl motif. Hidden below 900px, where it would only push content down.
+  pearl motif on a lattice ground. Hidden below 900px, where it would only
+  push content down.
 
 ### 4.3 Day timeline
 
@@ -648,15 +657,24 @@ has to act on.
 
 ### 4.10 How to check Phase 3 works
 
-No backend is reachable without a `.env`, so the first line is the only
-automated check available in the repo:
+No backend is reachable without a `.env`, so these are the only checks
+available in the repo:
 
 ```bash
 npm run build
 git diff 96d124e -- src/components/ItineraryPlanner.jsx   # protected functions: additions only
-grep -nE "#[0-9A-Fa-f]{6}|@import|font-(heading|body|label|display)" \
+grep -nE "#[0-9A-Fa-f]{6}|@import|className=\"[^\"]*font-(heading|body|label|display)" \
   src/components/ItineraryPlanner.jsx src/components/planner/*   # no output
 ```
+
+How it was verified when built: a throwaway Playwright script (not in the
+repo) ran a build made with placeholder env values, intercepted every
+`/functions/v1/*` request and answered with synthetic data, then asserted 75
+things: request URLs, headers and payload keys for all three functions,
+totals after swap / replan / undo, tabs, the saved-trip path, reduced
+motion, 44px targets and no overflow at 375px. **The real edge functions,
+real auth and the real database were never exercised.** The list below is
+what still has to be done by hand.
 
 With a real `.env`:
 

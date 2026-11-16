@@ -37,6 +37,21 @@ html {
   --font-label: 'Space Grotesk', sans-serif;
   --pad-x: clamp(1.5rem, 5vw, 4.5rem);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* The same palette as channel triplets, so alpha variants never need a
+     hex or rgba literal: rgba(var(--ink-rgb), .12). Not new colours. */
+  --ink-rgb: 26, 20, 16;
+  --cream-rgb: 250, 246, 239;
+  --crimson-rgb: 155, 27, 48;
+  --gold-rgb: 184, 146, 74;
+  --white-rgb: 255, 255, 255;
+  --line: rgba(var(--ink-rgb), 0.12);
+  --line-soft: rgba(var(--ink-rgb), 0.08);
+
+  --radius: 8px;
+  --radius-pill: 100px;
+  --nav-h: 72px;
+  --tap: 44px;
 }
 
 /* ============ SADU PATTERN — signature divider ============

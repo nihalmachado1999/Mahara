@@ -1,0 +1,281 @@
+/* ---------------------------------------------------------------
+   Shared design-system classes. Every class here is prefixed `ui-`
+   because this file is global, unlike the per-page <style> blocks.
+   Values come from the Home / Destinations patterns and from
+   DESIGN_RULES.md. See DESIGN_UPSCALE_PLAN.md, Phase 1.
+------------------------------------------------------------------ */
+
+.ui-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============ BUTTONS ============
+   primary  = the one main action: crimson fill, pill (§5)
+   secondary / quiet = 8px radius */
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: var(--tap);
+  padding: 0.7rem 1.5rem;
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s, border-color 0.25s;
+}
+.ui-btn:disabled,
+.ui-btn[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.ui-btn--primary {
+  background: var(--crimson);
+  color: var(--cream);
+  border-radius: var(--radius-pill);
+}
+.ui-btn--primary:hover:not(:disabled) { background: var(--crimson-deep); }
+.ui-btn--secondary {
+  background: transparent;
+  color: var(--crimson);
+  border-color: var(--crimson);
+}
+.ui-btn--secondary:hover:not(:disabled) { background: var(--crimson-soft); }
+.ui-btn--quiet {
+  background: transparent;
+  color: var(--ink);
+  border-color: rgba(var(--ink-rgb), 0.22);
+}
+.ui-btn--quiet:hover:not(:disabled) { background: var(--cream-warm); }
+.ui-btn--sm { font-size: 0.68rem; padding: 0.55rem 1.1rem; }
+.ui-btn--block { width: 100%; }
+
+/* ============ TEXT LINK ============
+   The "View All" / "Discover More" pattern. The ::after extends the
+   hit area to 44px without changing how the link looks. */
+.ui-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0 2px;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--crimson);
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(var(--crimson-rgb), 0.28);
+  cursor: pointer;
+  transition: gap 0.3s var(--ease), border-color 0.3s;
+}
+.ui-link:hover { gap: 0.75rem; border-color: var(--crimson); }
+.ui-link::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, var(--tap));
+  height: var(--tap);
+  transform: translate(-50%, -50%);
+}
+
+/* ============ FORM FIELD ============ */
+.ui-field { display: block; min-width: 0; margin: 0; padding: 0; border: 0; }
+.ui-field__label {
+  display: block;
+  margin-bottom: 0.6rem;
+  padding: 0;
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.ui-field__hint {
+  margin-top: 0.45rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.ui-field__error {
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--crimson-deep);
+  overflow-wrap: anywhere;
+}
+/* 1rem on purpose: iOS Safari zooms the page on focus below 16px. */
+.ui-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: var(--tap);
+  padding: 0.6rem 0.9rem;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  text-align: left;
+  color: var(--ink);
+  background: var(--cream-warm);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  transition: border-color 0.25s;
+}
+.ui-input:focus { border-color: var(--crimson); }
+.ui-input::placeholder { color: rgba(var(--ink-rgb), 0.62); }
+
+/* ============ EMPTY STATE ============ */
+.ui-empty { padding: 3.5rem 1.5rem; text-align: center; }
+.ui-empty__icon {
+  display: block;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 1.25rem;
+  color: rgba(var(--crimson-rgb), 0.5);
+}
+.ui-empty__title {
+  margin-bottom: 0.5rem;
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.ui-empty__desc {
+  max-width: 44ch;
+  margin: 0 auto;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+/* ============ TOAST ============
+   Sits under the nav: InstallPrompt owns the bottom edge. */
+.ui-toast-region {
+  position: fixed;
+  top: calc(var(--nav-h) + 0.75rem);
+  right: var(--pad-x);
+  z-index: 95;
+  width: min(420px, calc(100vw - 2rem));
+  pointer-events: none;
+}
+@media (max-width: 640px) {
+  .ui-toast-region { left: 1rem; right: 1rem; width: auto; }
+}
+.ui-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0.35rem 0.35rem 1.1rem;
+  color: var(--cream);
+  background: var(--ink);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  box-shadow: 0 14px 34px rgba(var(--ink-rgb), 0.28);
+  animation: ui-toast-in 0.35s var(--ease);
+}
+.ui-toast--error {
+  color: var(--crimson-deep);
+  background: var(--crimson-soft);
+  border-color: rgba(var(--crimson-rgb), 0.35);
+  box-shadow: 0 14px 34px rgba(var(--crimson-rgb), 0.18);
+}
+/* A single pearl. Gold on ink only (6.3:1); crimson on the error tone. */
+.ui-toast__mark {
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.ui-toast--error .ui-toast__mark { background: var(--crimson); }
+.ui-toast__msg {
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.ui-toast__action {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0 0.6rem;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: inherit;
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.ui-toast__close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  color: inherit;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  opacity: 0.75;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.ui-toast__close:hover { opacity: 1; }
+@keyframes ui-toast-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ============ FOCUS ============
+   Scoped to ui- classes for now. Phase 4 adds the global rule. */
+.ui-btn:focus-visible,
+.ui-link:focus-visible,
+.ui-input:focus-visible {
+  outline: 2px solid var(--crimson);
+  outline-offset: 3px;
+}
+.ui-toast__action:focus-visible,
+.ui-toast__close:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-toast { animation: none; }
+  .ui-btn, .ui-link, .ui-input, .ui-toast__close { transition: none; }
+}

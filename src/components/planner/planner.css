@@ -1,0 +1,664 @@
+/* ---------------------------------------------------------------
+   Itinerary planner — layout, form controls, day timeline, tabs,
+   staged loading. Global file, so every class is prefixed `planner-`.
+   Shared pieces (buttons, inputs, links, empty state, toast) come
+   from ../ui/ui.css. See DESIGN_UPSCALE_PLAN.md, Phase 3.
+------------------------------------------------------------------ */
+
+.planner { background: var(--cream); }
+
+/* ============ HEADER — Destinations .page-header pattern ============ */
+.planner-head { padding: clamp(3rem, 6vw, 4.5rem) var(--pad-x) clamp(1.75rem, 3.5vw, 2.5rem); }
+.planner-eyebrow {
+  display: block;
+  margin-bottom: 0.6rem;
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--crimson);
+}
+.planner-head__title {
+  margin-bottom: 0.9rem;
+  font-family: var(--font-heading);
+  font-size: clamp(2.2rem, 5.2vw, 4rem);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.planner-head__title em { font-style: normal; color: var(--crimson); }
+.planner-head__sub {
+  max-width: 540px;
+  font-size: 0.95rem;
+  font-weight: 300;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+/* ============ GRID — side by side from 900px, stacked below ============ */
+.planner-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2.5rem;
+  padding: 0 var(--pad-x) clamp(3.5rem, 6vw, 5rem);
+}
+.planner-results { min-width: 0; scroll-margin-top: calc(var(--nav-h) + 1rem); }
+.planner { scroll-margin-top: var(--nav-h); }
+@media (min-width: 900px) {
+  .planner-grid {
+    grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
+    gap: clamp(2rem, 4vw, 4rem);
+    align-items: start;
+  }
+  /* The form is usually taller than the viewport. The short states of the
+     results column (idle, loading, error) are pinned so they stay beside
+     whichever part of the form is on screen — otherwise pressing Generate
+     at the bottom of the form would start a loading state nobody can see. */
+  .planner-results { align-self: stretch; }
+  .planner-results__pin { position: sticky; top: calc(var(--nav-h) + 1.5rem); }
+}
+/* The form itself is only pinned when all of it fits (it is about 910px
+   tall), so the submit button can never be trapped below the fold. */
+@media (min-width: 900px) and (min-height: 1080px) {
+  .planner-form-col { position: sticky; top: calc(var(--nav-h) + 1.5rem); }
+}
+.planner-sadu { margin-bottom: clamp(2.5rem, 5vw, 4rem); }
+
+/* ============ FORM ============ */
+.planner-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: clamp(1.25rem, 2.5vw, 1.75rem);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.planner-stepper { display: flex; align-items: center; gap: 0.75rem; }
+.planner-stepper__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid rgba(var(--ink-rgb), 0.22);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.planner-stepper__btn:hover:not(:disabled) { background: var(--cream-warm); border-color: var(--crimson); }
+.planner-stepper__btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.planner-stepper__value {
+  min-width: 5.5rem;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.planner-seg {
+  display: grid;
+  grid-template-columns: repeat(var(--planner-seg-cols, 3), minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.planner-seg__btn {
+  min-height: var(--tap);
+  padding: 0.6rem 0.65rem;
+  text-align: left;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid rgba(var(--ink-rgb), 0.16);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.planner-seg__btn:hover { border-color: var(--crimson); }
+.planner-seg__btn[aria-pressed="true"] {
+  color: var(--cream);
+  background: var(--crimson);
+  border-color: var(--crimson);
+}
+.planner-seg__label {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.planner-seg__desc {
+  display: block;
+  margin-top: 0.25rem;
+  font-family: var(--font-label);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.35;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.planner-seg__btn[aria-pressed="true"] .planner-seg__desc { color: var(--cream); }
+
+/* Same chip as the Destinations .filter */
+.planner-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.planner-chip {
+  min-height: var(--tap);
+  padding: 0 0.95rem;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid rgba(var(--ink-rgb), 0.16);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.planner-chip:hover { color: var(--ink); background: var(--cream-warm); }
+.planner-chip[aria-pressed="true"] {
+  color: var(--white);
+  background: var(--crimson);
+  border-color: var(--crimson);
+}
+
+.planner-stepper__btn:focus-visible,
+.planner-seg__btn:focus-visible,
+.planner-chip:focus-visible,
+.planner-tab:focus-visible {
+  outline: 2px solid var(--crimson);
+  outline-offset: 3px;
+}
+
+/* ============ IDLE — pearl empty state on a mashrabiya lattice ============ */
+.planner-idle {
+  border-radius: var(--radius);
+  background-color: var(--cream-warm);
+  background-image:
+    repeating-linear-gradient(45deg, rgba(var(--crimson-rgb), 0.05) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(-45deg, rgba(var(--crimson-rgb), 0.05) 0 1px, transparent 1px 16px);
+}
+@media (max-width: 899px) {
+  .planner-idle { display: none; }
+}
+
+/* ============ LOADING — three stages on the same strand as the timeline ============ */
+.planner-loading {
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.planner-loading__steps { margin-top: 1.25rem; list-style: none; }
+.planner-loading__step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  column-gap: 0.9rem;
+  align-items: start;
+  padding-bottom: 1.4rem;
+}
+.planner-loading__step:last-child { padding-bottom: 0; }
+.planner-loading__step::before {
+  content: "";
+  position: absolute;
+  left: 11.5px;
+  top: 27px;
+  bottom: -3px;
+  width: 1px;
+  background: rgba(var(--gold-rgb), 0.6);
+}
+.planner-loading__step:last-child::before { display: none; }
+.planner-loading__node {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: var(--cream);
+  background: var(--white);
+  border: 1.5px solid rgba(var(--ink-rgb), 0.25);
+  border-radius: 50%;
+}
+.planner-loading__label {
+  padding-top: 1px;
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.planner-loading__step.is-active .planner-loading__node {
+  background: var(--crimson-soft);
+  border-color: var(--crimson);
+  animation: planner-pulse 1.6s ease-in-out infinite;
+}
+.planner-loading__step.is-done .planner-loading__node {
+  background: var(--crimson);
+  border-color: var(--crimson);
+}
+.planner-loading__step.is-active .planner-loading__label,
+.planner-loading__step.is-done .planner-loading__label { color: var(--ink); }
+.planner-loading__note {
+  margin-top: 1.4rem;
+  padding-top: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  border-top: 1px solid var(--line-soft);
+}
+@keyframes planner-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--crimson-rgb), 0.35); }
+  50% { box-shadow: 0 0 0 7px rgba(var(--crimson-rgb), 0); }
+}
+
+/* ============ ERROR / NOTICE ============ */
+.planner-error {
+  padding: 1.4rem;
+  background: rgba(var(--crimson-rgb), 0.05);
+  border: 1px solid var(--crimson);
+  border-radius: var(--radius);
+}
+.planner-error__title {
+  margin-bottom: 0.4rem;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--crimson);
+}
+.planner-error__msg {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.planner-debug { margin-top: 1rem; }
+.planner-debug summary {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.planner-debug pre {
+  max-height: 16rem;
+  margin-top: 0.6rem;
+  padding: 0.9rem;
+  overflow: auto;
+  font-size: 0.7rem;
+  color: var(--cream);
+  background: var(--ink);
+  border-radius: var(--radius);
+}
+.planner-notice {
+  margin-bottom: 1.5rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--cream-warm);
+  border-radius: var(--radius);
+}
+
+/* ============ RESULTS HEAD ============ */
+.planner-results__head { margin-bottom: 1.75rem; }
+.planner-results__title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.9rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.planner-results__summary {
+  max-width: 62ch;
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 300;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+/* ============ DAY TABS — sticky, long trips only ============ */
+.planner-tabs-wrap {
+  position: sticky;
+  top: var(--nav-h);
+  z-index: 40;
+  margin-bottom: 1.75rem;
+  background: var(--cream);
+  border-bottom: 1px solid var(--line-soft);
+}
+@media (max-width: 899px) {
+  /* Full bleed when stacked, so stops do not show through at the sides. */
+  .planner-tabs-wrap {
+    margin-left: calc(-1 * var(--pad-x));
+    margin-right: calc(-1 * var(--pad-x));
+    padding: 0 var(--pad-x);
+  }
+}
+.planner-tabs {
+  position: relative;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.planner-tabs::-webkit-scrollbar { display: none; }
+.planner-tab {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: var(--tap);
+  padding: 0 1rem;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--ink-soft);
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s;
+}
+.planner-tab:not(.is-active):hover { color: var(--ink); background: var(--cream-warm); }
+.planner-tab.is-active { color: var(--white); background: var(--crimson); }
+.planner-tab__done { display: inline-flex; align-items: center; }
+
+/* ============ DAY ============ */
+.planner-days { display: flex; flex-direction: column; gap: 3rem; }
+.planner-day__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line-soft);
+}
+.planner-day__label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--crimson);
+}
+.planner-day__title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.planner-day__title:focus { outline: none; }
+.planner-day__title:focus-visible { outline: 2px solid var(--crimson); outline-offset: 4px; }
+.planner-day__count {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  color: var(--ink-soft);
+}
+.planner-day__count b { font-weight: 700; color: var(--crimson); }
+
+/* Change note from a replan. The edge stripe is the Home .num-card weave. */
+.planner-day__note {
+  position: relative;
+  margin-bottom: 1.5rem;
+  padding: 0.9rem 1.1rem 0.9rem 1.5rem;
+  overflow: hidden;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--cream-warm);
+  border-radius: var(--radius);
+}
+.planner-day__note::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: repeating-linear-gradient(135deg, var(--crimson) 0 6px, var(--gold) 6px 9px, var(--cream-warm) 9px 14px);
+}
+
+/* ============ TIMELINE ============
+   Column 1 is the strand: a 44px hit area holding a 24px pearl, which is
+   the done checkbox. The rail runs pearl to pearl. */
+.planner-stops { list-style: none; }
+.planner-stop {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--tap) minmax(0, 1fr);
+  column-gap: 0.5rem;
+  padding-bottom: 1.75rem;
+}
+.planner-stop:last-child { padding-bottom: 0; }
+.planner-stop:focus { outline: none; }
+.planner-stop:focus-visible { outline: 2px solid var(--crimson); outline-offset: 4px; border-radius: var(--radius); }
+.planner-stop::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--tap) / 2 - 0.5px);
+  top: 37px;
+  bottom: -7px;
+  width: 1px;
+  background: rgba(var(--gold-rgb), 0.6);
+}
+.planner-stop:last-child::before { display: none; }
+
+.planner-stop__check {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  margin: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.planner-stop__check::before {
+  content: "";
+  grid-area: 1 / 1;
+  width: 24px;
+  height: 24px;
+  background: var(--white);
+  border: 1.5px solid var(--crimson);
+  border-radius: 50%;
+  box-shadow: inset -2px -2px 0 rgba(var(--gold-rgb), 0.3);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.planner-stop__check::after {
+  content: "";
+  grid-area: 1 / 1;
+  width: 6px;
+  height: 11px;
+  margin-top: -2px;
+  border: solid var(--cream);
+  border-width: 0 2px 2px 0;
+  opacity: 0;
+  transform: rotate(45deg);
+}
+.planner-stop__check:hover::before { background: var(--crimson-soft); }
+.planner-stop__check:checked::before { background: var(--crimson); box-shadow: none; }
+.planner-stop__check:checked::after { opacity: 1; }
+.planner-stop__check:focus-visible { outline: 2px solid var(--crimson); outline-offset: -5px; }
+
+.planner-stop__body {
+  position: relative;
+  min-width: 0;
+  padding-top: 0.8rem;
+  isolation: isolate;
+}
+.planner-stop__main { transition: opacity 0.2s; }
+.planner-stop.is-done .planner-stop__main { opacity: 0.55; }
+.planner-stop.is-done .planner-stop__title { text-decoration: line-through; }
+
+.planner-stop__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  margin-bottom: 0.35rem;
+}
+.planner-stop__time {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--crimson);
+}
+.planner-stop__cost {
+  margin-left: auto;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  color: var(--ink-soft);
+}
+.planner-stop__title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.planner-stop__desc {
+  max-width: 62ch;
+  margin-top: 0.35rem;
+  font-size: 0.88rem;
+  font-weight: 300;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+.planner-stop__loc {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+.planner-stop__loc svg { flex-shrink: 0; }
+.planner-stop__swap { margin-top: 0.85rem; }
+
+/* Highlight after a swap or replan: one fade, then gone. */
+.planner-stop__flash {
+  position: absolute;
+  z-index: -1;
+  inset: 0.2rem -0.75rem -0.6rem -0.6rem;
+  background: var(--crimson-soft);
+  border-radius: var(--radius);
+  opacity: 0;
+  pointer-events: none;
+  animation: planner-flash 2.8s ease-out 1;
+}
+@keyframes planner-flash {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  100% { opacity: 0; }
+}
+/* Static stand-in for the flash; only shown under reduced motion. */
+.planner-stop__updated {
+  display: none;
+  padding: 0.2rem 0.45rem;
+  font-family: var(--font-label);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--crimson-deep);
+  background: var(--crimson-soft);
+  border-radius: var(--radius);
+}
+
+/* ============ INLINE FORMS — swap reason, replan reason ============ */
+.planner-inline-form { max-width: 34rem; }
+.planner-inline-form__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+.planner-day__foot {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line-soft);
+}
+.planner-day__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+/* ============ TOTAL / TIPS / ACTIONS ============ */
+.planner-total {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-top: 2.5rem;
+  padding: 1.1rem 1.4rem;
+  color: var(--cream);
+  background: var(--ink);
+  border-radius: var(--radius);
+}
+/* Gold text is allowed here: it is on ink (6.3:1), not on cream. */
+.planner-total__label {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.planner-total__value {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.planner-tips { margin-top: 2rem; }
+.planner-tips__list { display: flex; flex-direction: column; gap: 0.7rem; list-style: none; }
+.planner-tips__item {
+  max-width: 68ch;
+  padding-left: 0.9rem;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  border-left: 2px solid var(--gold);
+}
+.planner-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-top: 2rem; }
+
+/* ============ REDUCED MOTION ============ */
+@media (prefers-reduced-motion: reduce) {
+  .planner-stop__flash { display: none; }
+  .planner-stop.is-changed .planner-stop__updated { display: inline-flex; }
+  .planner-loading__step.is-active .planner-loading__node { animation: none; }
+  .planner-stepper__btn,
+  .planner-seg__btn,
+  .planner-chip,
+  .planner-tab,
+  .planner-stop__check::before,
+  .planner-stop__main { transition: none; }
+}

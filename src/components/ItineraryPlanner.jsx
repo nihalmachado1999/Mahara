@@ -1,39 +1,21 @@
-import { useState, useRef, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useState, useRef, useEffect, useId } from "react";
+import { useLocation, Link } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
+import PlannerForm from "./planner/PlannerForm";
+import PlannerLoading from "./planner/PlannerLoading";
+import DayTabs from "./planner/DayTabs";
+import DayTimeline from "./planner/DayTimeline";
+import { PearlIcon, CheckIcon } from "./planner/icons";
+import Toast, { useToast } from "./ui/Toast";
+import "./planner/planner.css";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-const INTERESTS = [
-  { id: "heritage", label: "Pearling & Heritage" },
-  { id: "food", label: "Food & Souqs" },
-  { id: "beaches", label: "Beaches & Coast" },
-  { id: "nightlife", label: "Nightlife" },
-  { id: "family", label: "Family Fun" },
-  { id: "nature", label: "Nature & Outdoors" },
-  { id: "shopping", label: "Shopping" },
-  { id: "culture", label: "Art & Museums" },
-];
-
-const PACE_OPTIONS = [
-  { id: "relaxed", label: "Relaxed", desc: "2–3 stops/day" },
-  { id: "balanced", label: "Balanced", desc: "4–5 stops/day" },
-  { id: "packed", label: "Packed", desc: "6+ stops/day" },
-];
-
-const FAMILY_OPTIONS = [
-  { id: "solo", label: "Solo" },
-  { id: "couple", label: "Couple" },
-  { id: "family", label: "Family w/ Kids" },
-  { id: "friends", label: "Friends Group" },
-];
-
-const BUDGET_TIERS = [
-  { id: "budget", label: "Budget", desc: "Under 15 BD/day" },
-  { id: "comfort", label: "Comfort", desc: "15–40 BD/day" },
-  { id: "luxury", label: "Luxury", desc: "40+ BD/day" },
-];
+// Trips longer than this switch from stacked days to sticky day tabs.
+const DAY_TABS_THRESHOLD = 3;
+// How long a swapped / replanned stop stays marked as changed.
+const CHANGE_MARK_MS = 6000;
 
 function getCurrentTimeString() {
   const now = new Date();
@@ -95,75 +77,33 @@ function normalizeItinerary(raw) {
   return null;
 }
 
-function TimeIconMorning() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="3.5" stroke="#B8924A" strokeWidth="1.4" />
-      <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6L13 13M13 3l-1.4 1.4M4.4 11.6L3 13" stroke="#B8924A" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
-}
-function TimeIconEvening() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M13 9.5A5.5 5.5 0 1 1 6.5 3a4.2 4.2 0 0 0 6.5 6.5Z" stroke="#9B1B30" strokeWidth="1.3" strokeLinejoin="round" />
-    </svg>
-  );
-}
-function TimeIconDefault() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="3.5" stroke="#B8924A" strokeWidth="1.4" />
-      <path d="M2 8h1.5M12.5 8H14M8 2v1.5M8 12.5V14" stroke="#B8924A" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
-}
-function TimeIcon({ time = "" }) {
-  const t = String(time).toLowerCase();
-  const clockMatch = t.match(/^(\d{1,2}):\d{2}/);
-  if (clockMatch) {
-    const hour = parseInt(clockMatch[1], 10);
-    if (hour < 12) return <TimeIconMorning />;
-    if (hour < 17) return <TimeIconDefault />;
-    return <TimeIconEvening />;
-  }
-  if (t.includes("morning")) return <TimeIconMorning />;
-  if (t.includes("evening") || t.includes("night")) return <TimeIconEvening />;
-  return <TimeIconDefault />;
+// Display only. A sum of model-supplied floats can come out as 12.100000000000001.
+function formatBD(amount) {
+  return String(parseFloat(amount.toFixed(3)));
 }
 
-function SaduDivider() {
-  return <div className="sadu-strip" style={{ margin: "2rem 0" }}></div>;
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-function Segmented({ options, value, onChange }) {
-  return (
-    <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${options.length}, 1fr)` }}>
-      {options.map((opt) => {
-        const active = value === opt.id;
-        return (
-          <button
-            key={opt.id}
-            type="button"
-            onClick={() => onChange(opt.id)}
-            className="font-body text-left px-3 py-2.5 rounded-[8px] border transition-colors"
-            style={{
-              borderColor: active ? "#9B1B30" : "rgba(26,20,16,0.15)",
-              background: active ? "#9B1B30" : "transparent",
-              color: active ? "#FAF6EF" : "#1A1410",
-            }}
-          >
-            <div className="font-heading text-sm font-semibold">{opt.label}</div>
-            {opt.desc && (
-              <div className="font-label text-[11px] mt-0.5" style={{ color: active ? "#FAF6EF" : "rgba(26,20,16,0.55)" }}>
-                {opt.desc}
-              </div>
-            )}
-          </button>
-        );
-      })}
-    </div>
-  );
+function scrollToStart(el) {
+  el.scrollIntoView({ block: "start", behavior: prefersReducedMotion() ? "instant" : "smooth" });
+}
+
+function isAboveViewport(el) {
+  const navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--nav-h")) || 72;
+  return el.getBoundingClientRect().top < navH;
+}
+
+// Bring the results column into view when its content changes out of sight.
+// Stacked (below 900px) the results sit under the form, so always scroll.
+// Side by side, the loading card is pinned in view by CSS; scroll only when
+// a result or an error lands and its top has already been scrolled past.
+function revealResults(el, status) {
+  if (!el) return;
+  const stacked = window.matchMedia("(max-width: 899px)").matches;
+  if (!stacked && (status === "loading" || !isAboveViewport(el))) return;
+  scrollToStart(el);
 }
 
 export default function ItineraryPlanner() {
@@ -194,12 +134,153 @@ export default function ItineraryPlanner() {
   const [saveState, setSaveState] = useState("idle");
   const [saveError, setSaveError] = useState("");
 
+  // ---- Results view state (presentation only) --------------------------
+  const idBase = useId();
+  const rootRef = useRef(null);
+  const resultsRef = useRef(null);
+  const { toast, showToast, dismissToast } = useToast();
+  // "form" when the trip was generated here, "saved" when it came from Profile.
+  const [resultSource, setResultSource] = useState(null);
+  const [activeDayIdx, setActiveDayIdx] = useState(0);
+  // One level of undo per day: { [dayIdx]: { kind, activities, hadNote, lastChangeNote } }
+  const [undoByDay, setUndoByDay] = useState({});
+  // Stops to highlight after a swap / replan: { dayIdx, indices, nonce }
+  const [changed, setChanged] = useState(null);
+  const changeTimerRef = useRef(null);
+  const [focusRequest, setFocusRequest] = useState(null);
+
+  // Latest committed values, for code that runs after an await or from a
+  // toast button created during an earlier render.
+  const itineraryRef = useRef(itinerary);
+  const undoRef = useRef(undoByDay);
+  useEffect(() => {
+    itineraryRef.current = itinerary;
+    undoRef.current = undoByDay;
+  });
+
+  useEffect(() => () => clearTimeout(changeTimerRef.current), []);
+
+  // A new itinerary invalidates everything that was keyed to the old one's
+  // day and stop indices.
+  function resetResultView(source) {
+    setResultSource(source);
+    setActiveDayIdx(0);
+    setUndoByDay({});
+    setChanged(null);
+    clearTimeout(changeTimerRef.current);
+    setOpenSwapKey(null);
+    setOpenReplanFormDay(null);
+    setSwapError({});
+    setReplanError({});
+  }
+
+  // Called by the replan and swap handlers once their change is applied.
+  // previousDay is the day exactly as it was before the change.
+  function recordChange(dayIdx, kind, previousDay, indices) {
+    if (previousDay) {
+      setUndoByDay((prev) => ({
+        ...prev,
+        [dayIdx]: {
+          kind,
+          activities: previousDay.activities,
+          hadNote: Object.prototype.hasOwnProperty.call(previousDay, "lastChangeNote"),
+          lastChangeNote: previousDay.lastChangeNote,
+        },
+      }));
+    }
+
+    setChanged({ dayIdx, indices, nonce: Date.now() });
+    clearTimeout(changeTimerRef.current);
+    changeTimerRef.current = setTimeout(() => setChanged(null), CHANGE_MARK_MS);
+
+    const dayLabel = previousDay?.day ?? dayIdx + 1;
+    showToast({
+      tone: "success",
+      message: kind === "swap" ? `Stop swapped on day ${dayLabel}.` : `Day ${dayLabel} replanned.`,
+      action: previousDay ? { label: "Undo", onClick: () => handleUndoDay(dayIdx) } : undefined,
+    });
+
+    // The confirm button that had focus is about to unmount.
+    setFocusRequest({
+      id: kind === "swap" ? `${idBase}-stop-${dayIdx}-${indices[0]}` : `${idBase}-day-${dayIdx}`,
+    });
+  }
+
+  // Restores the day to how it was before its most recent swap or replan,
+  // and recalculates the total. Reads refs, not state, because it is also
+  // called from the toast's Undo button.
+  function handleUndoDay(dayIdx) {
+    const entry = undoRef.current[dayIdx];
+    if (!entry) return;
+    const dayLabel = itineraryRef.current?.days?.[dayIdx]?.day ?? dayIdx + 1;
+
+    setItinerary((prev) => {
+      if (!prev) return prev;
+      const nextDays = prev.days.map((d, dIdx) => {
+        if (dIdx !== dayIdx) return d;
+        const restored = { ...d, activities: entry.activities };
+        if (entry.hadNote) restored.lastChangeNote = entry.lastChangeNote;
+        else delete restored.lastChangeNote;
+        return restored;
+      });
+      return {
+        ...prev,
+        days: nextDays,
+        totalEstimatedCost: recomputeItineraryTotal(nextDays),
+      };
+    });
+
+    setUndoByDay((prev) => {
+      const next = { ...prev };
+      delete next[dayIdx];
+      return next;
+    });
+    // Stop indices on this day may point at different stops again.
+    setOpenSwapKey((key) => (typeof key === "string" && key.startsWith(`${dayIdx}-`) ? null : key));
+    setChanged(null);
+    clearTimeout(changeTimerRef.current);
+    setActiveDayIdx(dayIdx);
+    showToast({ message: `Day ${dayLabel} is back to how it was.` });
+    setFocusRequest({ id: `${idBase}-day-${dayIdx}` });
+  }
+
+  // Restore focus only if it was dropped (the focused control unmounted).
+  // Never pull focus away from something the user has moved on to.
+  useEffect(() => {
+    if (!focusRequest) return;
+    const active = document.activeElement;
+    if (active && active !== document.body && document.body.contains(active)) return;
+    document.getElementById(focusRequest.id)?.focus({ preventScroll: true });
+  }, [focusRequest]);
+
+  // Save status used to be inline text next to the button. It is now a
+  // toast, driven from saveState so handleSaveItinerary stays untouched.
+  useEffect(() => {
+    if (saveState === "saved") {
+      showToast({ tone: "success", message: "Saved to your profile." });
+    } else if (saveState === "needs-login") {
+      showToast({ message: "Log in to save this trip.", link: { label: "Log in", to: "/login" } });
+    } else if (saveState === "error") {
+      showToast({ tone: "error", message: saveError || "Couldn't save this itinerary." });
+    } else if (saveState === "saving") {
+      dismissToast();
+    }
+  }, [saveState, saveError, showToast, dismissToast]);
+
+  // Bring the results into view when something happens there out of sight
+  // (loading, result, error, a saved trip opened from Profile).
+  useEffect(() => {
+    if (status === "idle") return;
+    revealResults(resultsRef.current, status);
+  }, [status]);
+
   // Arriving here from Profile's "View" button — render the saved trip
   // directly instead of showing the empty planning form.
   useEffect(() => {
     if (location.state?.loadedItinerary) {
       setItinerary(location.state.loadedItinerary);
       setStatus("success");
+      resetResultView("saved");
     }
   }, [location.state]);
 
@@ -294,6 +375,8 @@ export default function ItineraryPlanner() {
         throw new Error("Got a response back but couldn't find an activities list in it.");
       }
 
+      const previousDay = itineraryRef.current?.days?.[dayIdx]; // undo snapshot
+
       setItinerary((prev) => {
         const nextDays = prev.days.map((d, dIdx) => {
           if (dIdx !== dayIdx) return d;
@@ -309,6 +392,13 @@ export default function ItineraryPlanner() {
           totalEstimatedCost: recomputeItineraryTotal(nextDays),
         };
       });
+
+      recordChange(
+        dayIdx,
+        "replan",
+        previousDay,
+        data.activities.map((_, i) => completedActivities.length + i),
+      );
 
       setOpenReplanFormDay(null);
       setReasonDrafts((prev) => ({ ...prev, [dayIdx]: "" }));
@@ -362,6 +452,8 @@ export default function ItineraryPlanner() {
         throw new Error("Got a response back but couldn't find a replacement activity in it.");
       }
 
+      const previousDay = itineraryRef.current?.days?.[dayIdx]; // undo snapshot
+
       setItinerary((prev) => {
         const nextDays = prev.days.map((d, dIdx) => {
           if (dIdx !== dayIdx) return d;
@@ -376,6 +468,8 @@ export default function ItineraryPlanner() {
           totalEstimatedCost: recomputeItineraryTotal(nextDays),
         };
       });
+
+      recordChange(dayIdx, "swap", previousDay, [aIdx]);
 
       setOpenSwapKey(null);
       setSwapReasonDrafts((prev) => ({ ...prev, [key]: "" }));
@@ -436,6 +530,7 @@ export default function ItineraryPlanner() {
 
       setItinerary(normalized);
       setStatus("success");
+      resetResultView("form");
     } catch (err) {
       console.error("generate-itinerary failed:", err);
       setErrorMsg(err.message || "Something went wrong talking to the itinerary service.");
@@ -446,491 +541,220 @@ export default function ItineraryPlanner() {
   const daysMismatch =
     status === "success" && itinerary && itinerary.days.length !== requestedDaysRef.current;
 
-  return (
-    <div className="min-h-full w-full" style={{ background: "#FAF6EF" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600&family=Cormorant+Garamond:wght@500;600;700&display=swap');
-        .font-heading { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .font-body { font-family: 'DM Sans', sans-serif; }
-        .font-label { font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; }
-        .font-display { font-family: 'Cormorant Garamond', serif; }
-        input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .activity-checkbox { width: 16px; height: 16px; margin-top: 2px; accent-color: #9B1B30; cursor: pointer; flex-shrink: 0; }
-      `}</style>
+  // requestedDaysRef is only set by the form, so a saved trip opened from
+  // Profile would always "mismatch" the default of 3 days.
+  const showDaysMismatch = daysMismatch && resultSource === "form";
 
-      <div className="max-w-2xl mx-auto px-4 py-10">
-        <div className="font-label text-[11px] mb-2" style={{ color: "#B8924A" }}>
-          Plan your trip
-        </div>
-        <h1 className="font-display text-4xl mb-1" style={{ color: "#1A1410" }}>
-          Build your Bahrain itinerary
+  const dayList = status === "success" && itinerary ? itinerary.days : [];
+  const useTabs = dayList.length > DAY_TABS_THRESHOLD;
+  const shownDayIdx = Math.min(activeDayIdx, Math.max(dayList.length - 1, 0));
+
+  return (
+    <div className="planner" ref={rootRef}>
+      <header className="planner-head">
+        <span className="planner-eyebrow">Plan your trip</span>
+        <h1 className="planner-head__title">
+          Build your Bahrain <em>itinerary</em>
         </h1>
-        <p className="font-body text-sm mb-8" style={{ color: "rgba(26,20,16,0.65)" }}>
+        <p className="planner-head__sub">
           Tell us the shape of the trip, we'll hand back a day-by-day plan.
         </p>
+      </header>
 
-        <form
-          onSubmit={handleSubmit}
-          className="p-6 rounded-[8px] border"
-          style={{ borderColor: "rgba(26,20,16,0.12)", background: "#ffffffaa" }}
+      <div className="planner-grid">
+        <div className="planner-form-col">
+          <PlannerForm
+            days={days}
+            setDays={setDays}
+            startDate={startDate}
+            setStartDate={setStartDate}
+            budgetTier={budgetTier}
+            setBudgetTier={setBudgetTier}
+            pace={pace}
+            setPace={setPace}
+            familyType={familyType}
+            setFamilyType={setFamilyType}
+            interests={interests}
+            toggleInterest={toggleInterest}
+            status={status}
+            onSubmit={handleSubmit}
+          />
+        </div>
+
+        <section
+          className="planner-results"
+          ref={resultsRef}
+          aria-label="Your itinerary"
+          aria-busy={status === "loading"}
         >
-          <div className="mb-6">
-            <label className="font-label text-[11px] block mb-2" style={{ color: "#1A1410" }}>
-              Trip length
-            </label>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setDays((d) => Math.max(1, d - 1))}
-                className="w-9 h-9 rounded-lg border font-heading text-lg"
-                style={{ borderColor: "rgba(26,20,16,0.2)", color: "#1A1410" }}
-              >
-                –
-              </button>
-              <div className="font-heading text-xl w-20 text-center" style={{ color: "#1A1410" }}>
-                {days} {days === 1 ? "day" : "days"}
-              </div>
-              <button
-                type="button"
-                onClick={() => setDays((d) => Math.min(14, d + 1))}
-                className="w-9 h-9 rounded-lg border font-heading text-lg"
-                style={{ borderColor: "rgba(26,20,16,0.2)", color: "#1A1410" }}
-              >
-                +
-              </button>
-            </div>
-          </div>
+          <p className="ui-sr-only" role="status">
+            {status === "success" && itinerary
+              ? `Itinerary ready: ${itinerary.days.length} ${itinerary.days.length === 1 ? "day" : "days"}.`
+              : ""}
+          </p>
 
-          <div className="mb-6">
-            <label className="font-label text-[11px] block mb-2" style={{ color: "#1A1410" }}>
-              Start date
-            </label>
-            <input
-              type="date"
-              value={startDate}
-              min={new Date().toISOString().split("T")[0]}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="font-body px-3 py-2.5 rounded-[8px] border w-full"
-              style={{ borderColor: "rgba(26,20,16,0.2)", color: "#1A1410", background: "transparent" }}
-            />
-          </div>
+          {status !== "success" && (
+            <div className="planner-results__pin">
+              {status === "idle" && (
+                <div className="ui-empty planner-idle">
+                  <PearlIcon className="ui-empty__icon" />
+                  <p className="ui-empty__title">No plan yet</p>
+                  <p className="ui-empty__desc">
+                    Set the trip up on the left. Before writing each day we check this week's Manama
+                    forecast, and whether your dates land on a causeway weekend or in Ramadan.
+                  </p>
+                </div>
+              )}
 
-          <div className="mb-6">
-            <label className="font-label text-[11px] block mb-2" style={{ color: "#1A1410" }}>
-              Budget tier
-            </label>
-            <Segmented options={BUDGET_TIERS} value={budgetTier} onChange={setBudgetTier} />
-          </div>
+              {status === "loading" && <PlannerLoading />}
 
-          <div className="mb-6">
-            <label className="font-label text-[11px] block mb-2" style={{ color: "#1A1410" }}>
-              Pace
-            </label>
-            <Segmented options={PACE_OPTIONS} value={pace} onChange={setPace} />
-          </div>
-
-          <div className="mb-6">
-            <label className="font-label text-[11px] block mb-2" style={{ color: "#1A1410" }}>
-              Traveling as
-            </label>
-            <Segmented options={FAMILY_OPTIONS} value={familyType} onChange={setFamilyType} />
-          </div>
-
-          <div className="mb-2">
-            <label className="font-label text-[11px] block mb-2" style={{ color: "#1A1410" }}>
-              Interests
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {INTERESTS.map((opt) => {
-                const active = interests.includes(opt.id);
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => toggleInterest(opt.id)}
-                    className="font-body text-xs px-2.5 py-2 rounded-[8px] border text-center transition-colors"
-                    style={{
-                      borderColor: active ? "#9B1B30" : "rgba(26,20,16,0.18)",
-                      background: active ? "#9B1B30" : "transparent",
-                      color: active ? "#FAF6EF" : "#1A1410",
-                    }}
-                  >
-                    {opt.label}
+              {status === "error" && (
+                <div className="planner-error" role="alert">
+                  <h2 className="planner-error__title">Couldn't generate that itinerary</h2>
+                  <p className="planner-error__msg">{errorMsg}</p>
+                  <button type="button" onClick={handleSubmit} className="ui-btn ui-btn--primary ui-btn--sm">
+                    Try again
                   </button>
-                );
-              })}
+
+                  {rawDebug && (
+                    <details className="planner-debug">
+                      <summary>Raw response (debug)</summary>
+                      <pre>{JSON.stringify(rawDebug, null, 2)}</pre>
+                    </details>
+                  )}
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
-          <button
-            type="submit"
-            disabled={status === "loading"}
-            className="font-heading font-semibold w-full mt-8 py-3 rounded-full transition-opacity"
-            style={{
-              background: "#9B1B30",
-              color: "#FAF6EF",
-              opacity: status === "loading" ? 0.6 : 1,
-            }}
-          >
-            {status === "loading" ? "Building your itinerary…" : "Generate itinerary"}
-          </button>
-        </form>
-
-        {status === "loading" && (
-          <div className="mt-8 space-y-3">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-20 rounded-[8px] animate-pulse"
-                style={{ background: "rgba(26,20,16,0.06)" }}
-              />
-            ))}
-          </div>
-        )}
-
-        {status === "error" && (
-          <div
-            className="mt-8 p-5 rounded-[8px] border"
-            style={{ borderColor: "#9B1B30", background: "rgba(155,27,48,0.05)" }}
-          >
-            <div className="font-heading font-semibold text-sm mb-1" style={{ color: "#9B1B30" }}>
-              Couldn't generate that itinerary
-            </div>
-            <p className="font-body text-sm mb-3" style={{ color: "#1A1410" }}>
-              {errorMsg}
-            </p>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="font-heading text-sm font-semibold px-4 py-2 rounded-lg"
-              style={{ background: "#9B1B30", color: "#FAF6EF" }}
-            >
-              Try again
-            </button>
-
-            {rawDebug && (
-              <details className="mt-4">
-                <summary className="font-label text-[11px] cursor-pointer" style={{ color: "rgba(26,20,16,0.6)" }}>
-                  Raw response (debug)
-                </summary>
-                <pre
-                  className="mt-2 p-3 rounded-lg text-[11px] overflow-auto max-h-64"
-                  style={{ background: "#1A1410", color: "#FAF6EF" }}
-                >
-                  {JSON.stringify(rawDebug, null, 2)}
-                </pre>
-              </details>
-            )}
-          </div>
-        )}
-
-        {status === "success" && itinerary && (
-          <>
-            <SaduDivider />
-
-            {daysMismatch && (
-              <div
-                className="mb-4 p-3 rounded-[8px] font-body text-xs"
-                style={{ background: "rgba(184,146,74,0.12)", color: "#1A1410" }}
-              >
-                Heads up — you asked for {requestedDaysRef.current} days, the model returned{" "}
-                {itinerary.days.length}. Worth checking the prompt in your edge function.
-              </div>
-            )}
-
-            <div className="mb-6">
-              <div className="font-label text-[11px] mb-1" style={{ color: "#B8924A" }}>
-                Your itinerary
-              </div>
-              <h2 className="font-display text-3xl mb-1" style={{ color: "#1A1410" }}>
-                {itinerary.destination || "Bahrain"}
-              </h2>
-              {itinerary.summary && (
-                <p className="font-body text-sm" style={{ color: "rgba(26,20,16,0.65)" }}>
-                  {itinerary.summary}
+          {status === "success" && itinerary && (
+            <>
+              {showDaysMismatch && (
+                <p className="planner-notice">
+                  You asked for {requestedDaysRef.current}{" "}
+                  {requestedDaysRef.current === 1 ? "day" : "days"}. This plan covers{" "}
+                  {itinerary.days.length}.
                 </p>
               )}
-            </div>
 
-            <div className="space-y-4">
-              {itinerary.days.map((day, dayIdx) => {
-                const remainingCount = (day.activities || []).filter((a) => !a.done).length;
-                return (
-                  <div
-                    key={dayIdx}
-                    className="p-5 rounded-[8px] border"
-                    style={{ borderColor: "rgba(26,20,16,0.12)", background: "#ffffffaa" }}
-                  >
-                    <div className="flex items-baseline gap-2 mb-3">
-                      <span className="font-label text-[11px]" style={{ color: "#9B1B30" }}>
-                        Day {day.day ?? dayIdx + 1}
-                      </span>
-                      <span className="font-heading font-semibold text-base" style={{ color: "#1A1410" }}>
-                        {day.title || `${(day.activities || []).length} stops planned`}
-                      </span>
-                    </div>
-
-                    {day.lastChangeNote && (
-                      <div
-                        className="mb-4 p-3 rounded-[8px] font-body text-xs"
-                        style={{ background: "rgba(184,146,74,0.12)", color: "#1A1410" }}
-                      >
-                        {day.lastChangeNote}
-                      </div>
-                    )}
-
-                    <div className="space-y-3">
-                      {(day.activities || []).map((act, aIdx) => {
-                        const swapKey = `${dayIdx}-${aIdx}`;
-                        return (
-                          <div key={aIdx} className="flex gap-3">
-                            <input
-                              type="checkbox"
-                              className="activity-checkbox"
-                              checked={!!act.done}
-                              onChange={() => toggleActivityDone(dayIdx, aIdx)}
-                              aria-label={`Mark "${act.title}" as done`}
-                            />
-                            <div className="mt-1 flex-shrink-0">
-                              <TimeIcon time={act.time} />
-                            </div>
-                            <div className="flex-1" style={{ opacity: act.done ? 0.5 : 1 }}>
-                              <div className="flex items-baseline justify-between gap-2">
-                                <span
-                                  className="font-heading text-sm font-semibold"
-                                  style={{
-                                    color: "#1A1410",
-                                    textDecoration: act.done ? "line-through" : "none",
-                                  }}
-                                >
-                                  {act.title}
-                                </span>
-                                {typeof act.costEstimate === "number" && (
-                                  <span className="font-label text-[11px]" style={{ color: "rgba(26,20,16,0.5)" }}>
-                                    ~{act.costEstimate} BD
-                                  </span>
-                                )}
-                              </div>
-                              {act.description && (
-                                <p className="font-body text-xs mt-0.5" style={{ color: "rgba(26,20,16,0.7)" }}>
-                                  {act.description}
-                                </p>
-                              )}
-                              {act.location && (
-                                <p className="font-label text-[10px] mt-1" style={{ color: "#B8924A" }}>
-                                  {act.location}
-                                </p>
-                              )}
-
-                              {!act.done && (
-                                <div className="mt-2">
-                                  {openSwapKey === swapKey ? (
-                                    <div className="space-y-1.5">
-                                      <input
-                                        type="text"
-                                        value={swapReasonDrafts[swapKey] || ""}
-                                        onChange={(e) =>
-                                          setSwapReasonDrafts((prev) => ({ ...prev, [swapKey]: e.target.value }))
-                                        }
-                                        placeholder="Why swap this? (optional)"
-                                        className="font-body text-xs px-2.5 py-1.5 rounded-[8px] border w-full"
-                                        style={{ borderColor: "rgba(26,20,16,0.2)", color: "#1A1410", background: "transparent" }}
-                                      />
-                                      <div className="flex gap-2">
-                                        <button
-                                          type="button"
-                                          onClick={() => handleSwapActivity(dayIdx, aIdx)}
-                                          disabled={swappingKey === swapKey}
-                                          className="font-heading text-[11px] font-semibold px-2.5 py-1.5 rounded-lg"
-                                          style={{
-                                            background: "#9B1B30",
-                                            color: "#FAF6EF",
-                                            opacity: swappingKey === swapKey ? 0.6 : 1,
-                                          }}
-                                        >
-                                          {swappingKey === swapKey ? "Swapping…" : "Confirm swap"}
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={() => setOpenSwapKey(null)}
-                                          disabled={swappingKey === swapKey}
-                                          className="font-heading text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border"
-                                          style={{ borderColor: "#1A1410", color: "#1A1410" }}
-                                        >
-                                          Cancel
-                                        </button>
-                                      </div>
-                                      {swapError[swapKey] && (
-                                        <p className="font-body text-[11px]" style={{ color: "#9B1B30" }}>
-                                          {swapError[swapKey]}
-                                        </p>
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <button
-                                      type="button"
-                                      onClick={() => setOpenSwapKey(swapKey)}
-                                      className="font-label text-[10px] font-semibold"
-                                      style={{ color: "#B8924A" }}
-                                    >
-                                      Swap this
-                                    </button>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <div className="mt-5 pt-4" style={{ borderTop: "1px solid rgba(26,20,16,0.08)" }}>
-                      {openReplanFormDay === dayIdx ? (
-                        <div className="space-y-2">
-                          <input
-                            type="text"
-                            value={reasonDrafts[dayIdx] || ""}
-                            onChange={(e) =>
-                              setReasonDrafts((prev) => ({ ...prev, [dayIdx]: e.target.value }))
-                            }
-                            placeholder="What changed? e.g. running late, too hot, want something different"
-                            className="font-body text-xs px-3 py-2 rounded-[8px] border w-full"
-                            style={{ borderColor: "rgba(26,20,16,0.2)", color: "#1A1410", background: "transparent" }}
-                          />
-                          <div className="flex gap-2">
-                            <button
-                              type="button"
-                              onClick={() => handleReplanDay(dayIdx)}
-                              disabled={replanningDay === dayIdx}
-                              className="font-heading text-xs font-semibold px-3 py-2 rounded-lg"
-                              style={{
-                                background: "#9B1B30",
-                                color: "#FAF6EF",
-                                opacity: replanningDay === dayIdx ? 0.6 : 1,
-                              }}
-                            >
-                              {replanningDay === dayIdx ? "Replanning…" : "Confirm replan"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setOpenReplanFormDay(null)}
-                              disabled={replanningDay === dayIdx}
-                              className="font-heading text-xs font-semibold px-3 py-2 rounded-lg border"
-                              style={{ borderColor: "#1A1410", color: "#1A1410" }}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setOpenReplanFormDay(dayIdx)}
-                          disabled={remainingCount === 0}
-                          className="font-heading text-xs font-semibold px-3 py-2 rounded-lg border transition-opacity"
-                          style={{
-                            borderColor: "#9B1B30",
-                            color: "#9B1B30",
-                            opacity: remainingCount === 0 ? 0.4 : 1,
-                          }}
-                        >
-                          Replan rest of this day
-                        </button>
-                      )}
-
-                      {replanError[dayIdx] && (
-                        <p className="font-body text-xs mt-2" style={{ color: "#9B1B30" }}>
-                          {replanError[dayIdx]}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {typeof itinerary.totalEstimatedCost === "number" && (
-              <div
-                className="mt-4 p-5 rounded-[8px] flex items-center justify-between"
-                style={{ background: "#1A1410" }}
-              >
-                <span className="font-heading text-sm font-semibold" style={{ color: "#FAF6EF" }}>
-                  Estimated total
-                </span>
-                <span className="font-display text-2xl" style={{ color: "#FAF6EF" }}>
-                  {itinerary.totalEstimatedCost} BD
-                </span>
+              <div className="planner-results__head">
+                <span className="planner-eyebrow">Your itinerary</span>
+                <h2 className="planner-results__title">{itinerary.destination || "Bahrain"}</h2>
+                {itinerary.summary && <p className="planner-results__summary">{itinerary.summary}</p>}
               </div>
-            )}
 
-            {itinerary.tips && itinerary.tips.length > 0 && (
-              <div className="mt-4 space-y-2">
-                {itinerary.tips.map((tip, i) => (
-                  <div
-                    key={i}
-                    className="font-body text-xs pl-3 py-1"
-                    style={{ borderLeft: "2px solid #B8924A", color: "rgba(26,20,16,0.75)" }}
-                  >
-                    {tip}
-                  </div>
-                ))}
+              {useTabs && (
+                <DayTabs
+                  days={dayList}
+                  activeIdx={shownDayIdx}
+                  onChange={setActiveDayIdx}
+                  idBase={idBase}
+                />
+              )}
+
+              <div className="planner-days">
+                {dayList.map((day, dayIdx) => {
+                  if (useTabs && dayIdx !== shownDayIdx) return null;
+                  return (
+                    <div
+                      key={dayIdx}
+                      role={useTabs ? "tabpanel" : undefined}
+                      id={useTabs ? `${idBase}-panel-${dayIdx}` : undefined}
+                      aria-labelledby={useTabs ? `${idBase}-tab-${dayIdx}` : undefined}
+                    >
+                      <DayTimeline
+                        day={day}
+                        dayIdx={dayIdx}
+                        idBase={idBase}
+                        changedIndices={changed && changed.dayIdx === dayIdx ? changed.indices : null}
+                        changeNonce={changed ? changed.nonce : 0}
+                        onToggleDone={toggleActivityDone}
+                        swap={{
+                          openKey: openSwapKey,
+                          setOpenKey: setOpenSwapKey,
+                          drafts: swapReasonDrafts,
+                          setDrafts: setSwapReasonDrafts,
+                          busyKey: swappingKey,
+                          errors: swapError,
+                          onConfirm: handleSwapActivity,
+                        }}
+                        replan={{
+                          isOpen: openReplanFormDay === dayIdx,
+                          setOpenDay: setOpenReplanFormDay,
+                          draft: reasonDrafts[dayIdx] || "",
+                          setDrafts: setReasonDrafts,
+                          busy: replanningDay === dayIdx,
+                          error: replanError[dayIdx],
+                          onConfirm: handleReplanDay,
+                        }}
+                        undo={undoByDay[dayIdx] || null}
+                        onUndo={handleUndoDay}
+                      />
+                    </div>
+                  );
+                })}
               </div>
-            )}
 
-            <div className="mt-6 flex items-center gap-4 flex-wrap">
-              <button
-                type="button"
-                onClick={() => {
-                  setStatus("idle");
-                  setItinerary(null);
-                  setSaveState("idle");
-                }}
-                className="font-heading text-sm font-semibold px-4 py-2 rounded-lg border"
-                style={{ borderColor: "#1A1410", color: "#1A1410" }}
-              >
-                Plan another trip
-              </button>
+              {typeof itinerary.totalEstimatedCost === "number" && (
+                <div className="planner-total">
+                  <span className="planner-total__label">Estimated total</span>
+                  <span className="planner-total__value">{formatBD(itinerary.totalEstimatedCost)} BD</span>
+                </div>
+              )}
 
-              {saveState !== "saved" && saveState !== "needs-login" && (
+              {itinerary.tips && itinerary.tips.length > 0 && (
+                <div className="planner-tips">
+                  <span className="planner-eyebrow">Tips</span>
+                  <ul className="planner-tips__list">
+                    {itinerary.tips.map((tip, i) => (
+                      <li key={i} className="planner-tips__item">
+                        {tip}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="planner-actions">
                 <button
                   type="button"
-                  onClick={handleSaveItinerary}
-                  disabled={saveState === "saving"}
-                  className="font-heading text-sm font-semibold px-4 py-2 rounded-lg"
-                  style={{
-                    background: "#9B1B30",
-                    color: "#FAF6EF",
-                    opacity: saveState === "saving" ? 0.6 : 1,
+                  onClick={() => {
+                    setStatus("idle");
+                    setItinerary(null);
+                    setSaveState("idle");
+                    resetResultView(null);
+                    dismissToast();
+                    if (rootRef.current && isAboveViewport(rootRef.current)) scrollToStart(rootRef.current);
                   }}
+                  className="ui-btn ui-btn--quiet"
                 >
-                  {saveState === "saving" ? "Saving..." : "Save this itinerary"}
+                  Plan another trip
                 </button>
-              )}
 
-              {saveState === "saved" && (
-                <span className="font-body text-sm" style={{ color: "#4A4038" }}>
-                  Saved to your profile
-                </span>
-              )}
-
-              {saveState === "needs-login" && (
-                <span className="font-body text-sm" style={{ color: "#4A4038" }}>
-                  <a href="/login" style={{ color: "#9B1B30", fontWeight: 600 }}>
-                    Log in
-                  </a>{" "}
-                  to save this trip
-                </span>
-              )}
-            </div>
-
-            {saveState === "error" && (
-              <p className="font-body text-xs mt-2" style={{ color: "#9B1B30" }}>
-                {saveError}
-              </p>
-            )}
-          </>
-        )}
+                {saveState === "needs-login" ? (
+                  <Link to="/login" className="ui-btn ui-btn--secondary">
+                    Log in to save
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleSaveItinerary}
+                    disabled={saveState === "saving" || saveState === "saved"}
+                    className="ui-btn ui-btn--primary"
+                  >
+                    {saveState === "saved" && <CheckIcon />}
+                    {saveState === "saving" ? "Saving..." : saveState === "saved" ? "Saved" : "Save this itinerary"}
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </section>
       </div>
+
+      <div className="sadu-strip planner-sadu"></div>
+
+      <Toast toast={toast} onDismiss={dismissToast} />
     </div>
   );
 }
