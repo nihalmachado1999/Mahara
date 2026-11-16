@@ -66,7 +66,7 @@ function DesktopDropdown({ label, items, isActive }) {
       {open && (
         <div className="nav__dropdown-panel">
           {items.map((item) => (
-            
+            <a
               key={item.to}
               href={item.to}
               className="nav__dropdown-item"
