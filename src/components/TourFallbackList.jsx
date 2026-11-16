@@ -36,12 +36,12 @@ export default function TourFallbackList({ stops, playedStopIds, currentStopId, 
           >
             <div style={{ display: "flex", alignItems: "center", gap: "0.9rem" }}>
               <span
-                className="font-label"
+                className="font-grotesk uppercase tracking-[0.04em]"
                 style={{ fontSize: "11px", color: "#B8924A", minWidth: "20px" }}
               >
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <span className="font-heading" style={{ fontWeight: 700, fontSize: "0.9rem", color: "#1A1410" }}>
+              <span className="font-jakarta" style={{ fontWeight: 700, fontSize: "0.9rem", color: "#1A1410" }}>
                 {stop.title}
               </span>
               {played && !playing && (
@@ -53,7 +53,7 @@ export default function TourFallbackList({ stops, playedStopIds, currentStopId, 
             <button
               type="button"
               onClick={() => onPlay(stop.id)}
-              className="font-label"
+              className="font-grotesk uppercase tracking-[0.04em]"
               style={{
                 display: "flex",
                 alignItems: "center",

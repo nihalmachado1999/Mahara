@@ -49,14 +49,6 @@ export default function PearlingPath() {
 
   return (
     <div className="min-h-full w-full" style={{ background: "#FAF6EF" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600&family=Cormorant+Garamond:wght@500;600;700&display=swap');
-        .font-heading { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .font-body { font-family: 'DM Sans', sans-serif; }
-        .font-label { font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; }
-        .font-display { font-family: 'Cormorant Garamond', serif; }
-      `}</style>
-
       {/* Hero — real photo of Bayt Siyadi, the Pearling Path's most iconic building */}
       <div
         style={{
@@ -69,13 +61,13 @@ export default function PearlingPath() {
         }}
       >
         <div className="max-w-2xl mx-auto px-4 h-full flex flex-col justify-end pb-8">
-          <div className="font-label text-[11px] mb-2" style={{ color: "#D9B77C" }}>
+          <div className="font-grotesk uppercase tracking-[0.04em] text-[11px] mb-2" style={{ color: "#D9B77C" }}>
             Muharraq · UNESCO World Heritage
           </div>
-          <h1 className="font-display text-5xl mb-1" style={{ color: "#FAF6EF" }}>
+          <h1 className="font-cormorant text-5xl mb-1" style={{ color: "#FAF6EF" }}>
             Pearling Path Audio Guide
           </h1>
-          <p className="font-body text-sm" style={{ color: "rgba(250,246,239,0.85)" }}>
+          <p className="font-dm text-sm" style={{ color: "rgba(250,246,239,0.85)" }}>
             Five stops through Bahrain's pearling history, narrated as you walk.
           </p>
         </div>
@@ -91,22 +83,22 @@ export default function PearlingPath() {
               <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="flex flex-col gap-1.5">
                   <DistanceIcon />
-                  <div className="font-label text-[10px]" style={{ color: "#B8924A" }}>Distance</div>
-                  <div className="font-heading font-semibold text-sm" style={{ color: "#1A1410" }}>~3.5 km loop</div>
+                  <div className="font-grotesk uppercase tracking-[0.04em] text-[10px]" style={{ color: "#B8924A" }}>Distance</div>
+                  <div className="font-jakarta font-semibold text-sm" style={{ color: "#1A1410" }}>~3.5 km loop</div>
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <TimeIcon />
-                  <div className="font-label text-[10px]" style={{ color: "#B8924A" }}>Time</div>
-                  <div className="font-heading font-semibold text-sm" style={{ color: "#1A1410" }}>45–60 min</div>
+                  <div className="font-grotesk uppercase tracking-[0.04em] text-[10px]" style={{ color: "#B8924A" }}>Time</div>
+                  <div className="font-jakarta font-semibold text-sm" style={{ color: "#1A1410" }}>45–60 min</div>
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <SunMoonIcon />
-                  <div className="font-label text-[10px]" style={{ color: "#B8924A" }}>Best time</div>
-                  <div className="font-heading font-semibold text-sm" style={{ color: "#1A1410" }}>Early AM / late PM</div>
+                  <div className="font-grotesk uppercase tracking-[0.04em] text-[10px]" style={{ color: "#B8924A" }}>Best time</div>
+                  <div className="font-jakarta font-semibold text-sm" style={{ color: "#1A1410" }}>Early AM / late PM</div>
                 </div>
               </div>
 
-              <p className="font-body text-xs mb-6" style={{ color: "rgba(26,20,16,0.6)" }}>
+              <p className="font-dm text-xs mb-6" style={{ color: "rgba(26,20,16,0.6)" }}>
                 Narration plays automatically as you approach each stop, using your phone's
                 location. You can also play any stop manually at any time — useful if GPS signal
                 is weak in the narrow lanes of the old town.
@@ -115,7 +107,7 @@ export default function PearlingPath() {
               <button
                 type="button"
                 onClick={startTour}
-                className="font-heading font-semibold w-full py-3 rounded-full"
+                className="font-jakarta font-semibold w-full py-3 rounded-full"
                 style={{ background: "#9B1B30", color: "#FAF6EF" }}
               >
                 Start Audio Tour
@@ -124,7 +116,7 @@ export default function PearlingPath() {
 
             <div className="sadu-strip"></div>
 
-            <div className="font-label text-[11px] mb-4" style={{ color: "#B8924A" }}>
+            <div className="font-grotesk uppercase tracking-[0.04em] text-[11px] mb-4" style={{ color: "#B8924A" }}>
               The Route
             </div>
             <div className="space-y-3">
@@ -135,16 +127,16 @@ export default function PearlingPath() {
                   style={{ borderColor: "rgba(26,20,16,0.1)", background: "#ffffffaa" }}
                 >
                   <span
-                    className="font-display flex-shrink-0"
+                    className="font-cormorant flex-shrink-0"
                     style={{ fontSize: "1.8rem", color: "#B8924A", lineHeight: 1 }}
                   >
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <div>
-                    <div className="font-heading font-semibold text-sm mb-1" style={{ color: "#1A1410" }}>
+                    <div className="font-jakarta font-semibold text-sm mb-1" style={{ color: "#1A1410" }}>
                       {stop.title}
                     </div>
-                    <p className="font-body text-xs" style={{ color: "rgba(26,20,16,0.55)" }}>
+                    <p className="font-dm text-xs" style={{ color: "rgba(26,20,16,0.55)" }}>
                       {stop.script.slice(0, 90).trim()}…
                     </p>
                   </div>
@@ -161,7 +153,7 @@ export default function PearlingPath() {
           >
             <div className="flex items-center justify-between mb-4">
               <span
-                className="font-label text-[10px]"
+                className="font-grotesk uppercase tracking-[0.04em] text-[10px]"
                 style={{ color: gpsStatus === "tracking" ? "#B8924A" : "#9B1B30" }}
               >
                 {GPS_STATUS_LABEL[gpsStatus]}
@@ -169,7 +161,7 @@ export default function PearlingPath() {
               <button
                 type="button"
                 onClick={endTour}
-                className="font-label text-[10px] font-semibold"
+                className="font-grotesk uppercase tracking-[0.04em] text-[10px] font-semibold"
                 style={{ color: "rgba(26,20,16,0.5)" }}
               >
                 End Tour
@@ -178,10 +170,10 @@ export default function PearlingPath() {
 
             {currentStop && (
               <div className="mb-5 p-4 rounded-[8px]" style={{ background: "#1A1410" }}>
-                <div className="font-label text-[10px] mb-1" style={{ color: "#B8924A" }}>
+                <div className="font-grotesk uppercase tracking-[0.04em] text-[10px] mb-1" style={{ color: "#B8924A" }}>
                   Now playing
                 </div>
-                <div className="font-heading font-semibold text-base" style={{ color: "#FAF6EF" }}>
+                <div className="font-jakarta font-semibold text-base" style={{ color: "#FAF6EF" }}>
                   {currentStop.title}
                 </div>
               </div>

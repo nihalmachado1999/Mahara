@@ -74,7 +74,7 @@ const BENEFITS = [
 function FieldLabel({ children }) {
   return (
     <label
-      className="font-label block mb-1.5"
+      className="font-grotesk block mb-1.5"
       style={{ fontSize: "0.62rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#4A4038" }}
     >
       {children}
@@ -88,7 +88,7 @@ function TextField({ label, ...props }) {
       <FieldLabel>{label}</FieldLabel>
       <input
         {...props}
-        className="font-body w-full px-4 py-3.5 rounded-[8px] border transition-colors"
+        className="font-dm w-full px-4 py-3.5 rounded-[8px] border transition-colors"
         style={{ background: "#F2E9DB", borderColor: "rgba(26,20,16,0.1)", color: "#1A1410", fontSize: "0.9rem", outline: "none" }}
         onFocus={(e) => (e.target.style.borderColor = "#9B1B30")}
         onBlur={(e) => (e.target.style.borderColor = "rgba(26,20,16,0.1)")}
@@ -107,7 +107,7 @@ function PasswordField({ label, value, onChange, show, onToggleShow, helperText 
           value={value}
           onChange={onChange}
           required
-          className="font-body w-full px-4 py-3.5 rounded-[8px] border transition-colors"
+          className="font-dm w-full px-4 py-3.5 rounded-[8px] border transition-colors"
           style={{ background: "#F2E9DB", borderColor: "rgba(26,20,16,0.1)", color: "#1A1410", fontSize: "0.9rem", outline: "none", paddingRight: "2.75rem" }}
           onFocus={(e) => (e.target.style.borderColor = "#9B1B30")}
           onBlur={(e) => (e.target.style.borderColor = "rgba(26,20,16,0.1)")}
@@ -123,7 +123,7 @@ function PasswordField({ label, value, onChange, show, onToggleShow, helperText 
         </button>
       </div>
       {helperText && (
-        <p className="font-body mt-1.5" style={{ fontSize: "0.72rem", color: "#4A4038" }}>
+        <p className="font-dm mt-1.5" style={{ fontSize: "0.72rem", color: "#4A4038" }}>
           {helperText}
         </p>
       )}
@@ -271,11 +271,6 @@ useEffect(() => {
   return (
     <div className="flex flex-col md:flex-row" style={{ minHeight: "100vh" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=Space+Grotesk:wght@500;600&family=Cormorant+Garamond:ital,wght@1,500;1,600&display=swap');
-        .font-heading { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .font-body { font-family: 'DM Sans', sans-serif; }
-        .font-label { font-family: 'Space Grotesk', sans-serif; }
-        .font-display { font-family: 'Cormorant Garamond', serif; }
         .auth-spinner { animation: auth-spin 0.8s linear infinite; }
         @keyframes auth-spin { to { transform: rotate(360deg); } }
         .auth-checkbox { width: 18px; height: 18px; border-radius: 6px; accent-color: #9B1B30; cursor: pointer; }
@@ -285,10 +280,10 @@ useEffect(() => {
         className="w-full md:w-3/5 flex flex-col justify-center px-8 md:px-16 py-10 md:py-0"
         style={{ background: "#1A1410" }}
       >
-        <h1 className="font-display italic text-3xl md:text-5xl mb-4" style={{ color: "#FAF6EF" }}>
+        <h1 className="font-cormorant italic text-3xl md:text-5xl mb-4" style={{ color: "#FAF6EF" }}>
           Your Bahrain, remembered.
         </h1>
-        <p className="font-body mb-8" style={{ color: "rgba(250,246,239,0.6)", fontSize: "0.95rem", maxWidth: "420px" }}>
+        <p className="font-dm mb-8" style={{ color: "rgba(250,246,239,0.6)", fontSize: "0.95rem", maxWidth: "420px" }}>
           Save places, build itineraries, and pick up your trip right where you left off.
         </p>
 
@@ -298,7 +293,7 @@ useEffect(() => {
               <span style={{ color: "#B8924A" }}>
                 <Icon />
               </span>
-              <span className="font-label" style={{ color: "rgba(250,246,239,0.75)", fontSize: "0.8rem", letterSpacing: "0.02em", textTransform: "none" }}>
+              <span className="font-grotesk" style={{ color: "rgba(250,246,239,0.75)", fontSize: "0.8rem", letterSpacing: "0.02em", textTransform: "none" }}>
                 {text}
               </span>
             </div>
@@ -310,7 +305,7 @@ useEffect(() => {
 
       <div className="w-full md:w-2/5 flex flex-col justify-center px-6 sm:px-10 py-10 md:py-0" style={{ background: "#FAF6EF" }}>
         <div style={{ maxWidth: "380px", width: "100%", margin: "0 auto" }}>
-          <a href="/" className="font-display italic text-xl mb-8 inline-block" style={{ color: "#1A1410" }}>
+          <a href="/" className="font-cormorant italic text-xl mb-8 inline-block" style={{ color: "#1A1410" }}>
             Bah<span style={{ color: "#9B1B30" }}>rain</span>
           </a>
 
@@ -321,7 +316,7 @@ useEffect(() => {
                   key={tabMode}
                   type="button"
                   onClick={() => switchMode(tabMode)}
-                  className="font-label pb-3"
+                  className="font-grotesk pb-3"
                   style={{
                     fontSize: "0.72rem",
                     letterSpacing: "0.15em",
@@ -339,14 +334,14 @@ useEffect(() => {
 
           {(mode === "reset" || mode === "update-password") && (
             <div className="mb-6">
-              <h2 className="font-heading font-bold text-xl mb-1" style={{ color: "#1A1410" }}>
+              <h2 className="font-jakarta font-bold text-xl mb-1" style={{ color: "#1A1410" }}>
                 {mode === "reset" ? "Reset your password" : "Choose a new password"}
               </h2>
               {mode === "reset" && (
                 <button
                   type="button"
                   onClick={() => switchMode("login")}
-                  className="font-body"
+                  className="font-dm"
                   style={{ fontSize: "0.82rem", color: "#9B1B30" }}
                 >
                   ← Back to login
@@ -360,7 +355,7 @@ useEffect(() => {
               className="flex items-start justify-between gap-2 mb-5 px-4 py-3 rounded-[8px]"
               style={{ background: "#F4DCDF", color: "#6E1322" }}
             >
-              <span className="font-body" style={{ fontSize: "0.82rem" }}>{error}</span>
+              <span className="font-dm" style={{ fontSize: "0.82rem" }}>{error}</span>
               <button type="button" onClick={() => setError("")} style={{ color: "#6E1322", flexShrink: 0 }}>
                 <IconX />
               </button>
@@ -369,7 +364,7 @@ useEffect(() => {
 
           {successMessage && (
             <div className="mb-5 px-4 py-3 rounded-[8px]" style={{ background: "#F2E9DB", color: "#1A1410" }}>
-              <span className="font-body" style={{ fontSize: "0.82rem" }}>{successMessage}</span>
+              <span className="font-dm" style={{ fontSize: "0.82rem" }}>{successMessage}</span>
             </div>
           )}
 
@@ -393,7 +388,7 @@ useEffect(() => {
                 <button
                   type="button"
                   onClick={() => switchMode("reset")}
-                  className="font-body"
+                  className="font-dm"
                   style={{ fontSize: "0.8rem", color: "#9B1B30" }}
                 >
                   Forgot password?
@@ -402,7 +397,7 @@ useEffect(() => {
               <button
                 type="submit"
                 disabled={loading}
-                className="font-label w-full py-3.5 rounded-full flex items-center justify-center gap-2"
+                className="font-grotesk w-full py-3.5 rounded-full flex items-center justify-center gap-2"
                 style={{
                   background: "#9B1B30",
                   color: "#FAF6EF",
@@ -419,7 +414,7 @@ useEffect(() => {
 
               <div className="flex items-center gap-3 my-6">
                 <div style={{ flex: 1, height: 1, background: "rgba(26,20,16,0.12)" }} />
-                <span className="font-label" style={{ fontSize: "0.68rem", color: "#4A4038" }}>OR</span>
+                <span className="font-grotesk" style={{ fontSize: "0.68rem", color: "#4A4038" }}>OR</span>
                 <div style={{ flex: 1, height: 1, background: "rgba(26,20,16,0.12)" }} />
               </div>
 
@@ -427,14 +422,14 @@ useEffect(() => {
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={loading}
-                className="font-body w-full py-3 rounded-[8px] border flex items-center justify-center gap-2.5"
+                className="font-dm w-full py-3 rounded-[8px] border flex items-center justify-center gap-2.5"
                 style={{ background: "#FFFFFF", borderColor: "rgba(26,20,16,0.1)", color: "#1A1410", fontSize: "0.88rem" }}
               >
                 <IconGoogle />
                 Continue with Google
               </button>
 
-              <p className="font-body text-center mt-6" style={{ fontSize: "0.85rem", color: "#4A4038" }}>
+              <p className="font-dm text-center mt-6" style={{ fontSize: "0.85rem", color: "#4A4038" }}>
                 Don't have an account?{" "}
                 <button type="button" onClick={() => switchMode("signup")} style={{ color: "#9B1B30" }}>
                   Sign up
@@ -482,14 +477,14 @@ useEffect(() => {
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
                   style={{ marginTop: "2px" }}
                 />
-                <span className="font-body" style={{ fontSize: "0.8rem", color: "#4A4038" }}>
+                <span className="font-dm" style={{ fontSize: "0.8rem", color: "#4A4038" }}>
                   I agree to the Terms of Service and Privacy Policy
                 </span>
               </label>
               <button
                 type="submit"
                 disabled={loading}
-                className="font-label w-full py-3.5 rounded-full flex items-center justify-center gap-2"
+                className="font-grotesk w-full py-3.5 rounded-full flex items-center justify-center gap-2"
                 style={{
                   background: "#9B1B30",
                   color: "#FAF6EF",
@@ -506,7 +501,7 @@ useEffect(() => {
 
               <div className="flex items-center gap-3 my-6">
                 <div style={{ flex: 1, height: 1, background: "rgba(26,20,16,0.12)" }} />
-                <span className="font-label" style={{ fontSize: "0.68rem", color: "#4A4038" }}>OR</span>
+                <span className="font-grotesk" style={{ fontSize: "0.68rem", color: "#4A4038" }}>OR</span>
                 <div style={{ flex: 1, height: 1, background: "rgba(26,20,16,0.12)" }} />
               </div>
 
@@ -514,14 +509,14 @@ useEffect(() => {
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={loading}
-                className="font-body w-full py-3 rounded-[8px] border flex items-center justify-center gap-2.5"
+                className="font-dm w-full py-3 rounded-[8px] border flex items-center justify-center gap-2.5"
                 style={{ background: "#FFFFFF", borderColor: "rgba(26,20,16,0.1)", color: "#1A1410", fontSize: "0.88rem" }}
               >
                 <IconGoogle />
                 Continue with Google
               </button>
 
-              <p className="font-body text-center mt-6" style={{ fontSize: "0.85rem", color: "#4A4038" }}>
+              <p className="font-dm text-center mt-6" style={{ fontSize: "0.85rem", color: "#4A4038" }}>
                 Already have an account?{" "}
                 <button type="button" onClick={() => switchMode("login")} style={{ color: "#9B1B30" }}>
                   Log in
@@ -542,7 +537,7 @@ useEffect(() => {
               <button
                 type="submit"
                 disabled={loading}
-                className="font-label w-full py-3.5 rounded-full flex items-center justify-center gap-2"
+                className="font-grotesk w-full py-3.5 rounded-full flex items-center justify-center gap-2"
                 style={{
                   background: "#9B1B30",
                   color: "#FAF6EF",
@@ -579,7 +574,7 @@ useEffect(() => {
               <button
                 type="submit"
                 disabled={loading}
-                className="font-label w-full py-3.5 rounded-full flex items-center justify-center gap-2"
+                className="font-grotesk w-full py-3.5 rounded-full flex items-center justify-center gap-2"
                 style={{
                   background: "#9B1B30",
                   color: "#FAF6EF",

@@ -53,7 +53,7 @@ export default function Footer() {
       </div>
       <div className="footer__bottom">
         <p className="footer__copy">© 2026 MAHARA — KINGDOM OF BAHRAIN</p>
-        <p className="footer__copy">EN / عربي</p>
+        <p className="footer__copy">EN / <span lang="ar" dir="rtl">عربي</span></p>
       </div>
     </footer>
   );

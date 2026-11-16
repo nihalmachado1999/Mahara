@@ -91,37 +91,30 @@ export default function Profile() {
   if (loading) {
     return (
       <div className="flex items-center justify-center" style={{ minHeight: "60vh", background: "#FAF6EF" }}>
-        <p className="font-body" style={{ color: "#4A4038" }}>Loading your profile…</p>
+        <p className="font-dm" style={{ color: "#4A4038" }}>Loading your profile…</p>
       </div>
     );
   }
 
   return (
     <div style={{ background: "#FAF6EF", minHeight: "100vh" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=DM+Sans:wght@300;400;500&family=Space+Grotesk:wght@500;600&display=swap');
-        .font-heading { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .font-body { font-family: 'DM Sans', sans-serif; }
-        .font-label { font-family: 'Space Grotesk', sans-serif; }
-      `}</style>
-
       <div className="max-w-3xl mx-auto px-4 py-10">
-        <div className="font-label mb-2" style={{ fontSize: "0.68rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "#9B1B30" }}>
+        <div className="font-grotesk mb-2" style={{ fontSize: "0.68rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "#9B1B30" }}>
           Your Account
         </div>
         <div className="flex items-start justify-between mb-8 flex-wrap gap-3">
           <div>
-            <h1 className="font-heading font-extrabold text-3xl mb-1" style={{ color: "#1A1410" }}>
+            <h1 className="font-jakarta font-extrabold text-3xl mb-1" style={{ color: "#1A1410" }}>
               Welcome back{displayName ? `, ${displayName}` : ""}
             </h1>
-            <p className="font-body" style={{ color: "#4A4038", fontSize: "0.9rem" }}>
+            <p className="font-dm" style={{ color: "#4A4038", fontSize: "0.9rem" }}>
               {user?.email}
             </p>
           </div>
           <button
             type="button"
             onClick={handleSignOut}
-            className="font-label px-4 py-2 rounded-lg border"
+            className="font-grotesk px-4 py-2 rounded-lg border"
             style={{ borderColor: "#1A1410", color: "#1A1410", fontSize: "0.72rem", letterSpacing: "0.08em", textTransform: "uppercase" }}
           >
             Log Out
@@ -130,11 +123,11 @@ export default function Profile() {
 
         {error && (
           <div className="mb-6 px-4 py-3 rounded-[8px]" style={{ background: "#F4DCDF", color: "#6E1322" }}>
-            <span className="font-body" style={{ fontSize: "0.85rem" }}>{error}</span>
+            <span className="font-dm" style={{ fontSize: "0.85rem" }}>{error}</span>
           </div>
         )}
 
-        <div className="font-label mb-4" style={{ fontSize: "0.68rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#B8924A" }}>
+        <div className="font-grotesk mb-4" style={{ fontSize: "0.68rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#B8924A" }}>
           Your Saved Trips
         </div>
 
@@ -143,16 +136,16 @@ export default function Profile() {
             className="p-8 rounded-[8px] border text-center"
             style={{ borderColor: "rgba(26,20,16,0.1)", background: "#ffffffaa" }}
           >
-            <h3 className="font-heading font-bold text-lg mb-2" style={{ color: "#1A1410" }}>
+            <h3 className="font-jakarta font-bold text-lg mb-2" style={{ color: "#1A1410" }}>
               No saved trips yet
             </h3>
-            <p className="font-body mb-4" style={{ color: "#4A4038", fontSize: "0.88rem" }}>
+            <p className="font-dm mb-4" style={{ color: "#4A4038", fontSize: "0.88rem" }}>
               Build an itinerary and save it to see it here.
             </p>
             <button
               type="button"
               onClick={() => navigate("/plan")}
-              className="font-label px-5 py-2.5 rounded-full"
+              className="font-grotesk px-5 py-2.5 rounded-full"
               style={{ background: "#9B1B30", color: "#FAF6EF", fontSize: "0.72rem", letterSpacing: "0.08em", textTransform: "uppercase" }}
             >
               Plan a Trip
@@ -170,15 +163,15 @@ export default function Profile() {
                   style={{ borderColor: "rgba(26,20,16,0.1)", background: "#ffffffaa" }}
                 >
                   <div style={{ minWidth: "200px", flex: 1 }}>
-                    <h3 className="font-heading font-bold text-base mb-1" style={{ color: "#1A1410" }}>
+                    <h3 className="font-jakarta font-bold text-base mb-1" style={{ color: "#1A1410" }}>
                       {itinerary.destination || "Bahrain"} — {dayCount} {dayCount === 1 ? "day" : "days"}
                     </h3>
                     {itinerary.summary && (
-                      <p className="font-body mb-1" style={{ color: "#4A4038", fontSize: "0.85rem" }}>
+                      <p className="font-dm mb-1" style={{ color: "#4A4038", fontSize: "0.85rem" }}>
                         {itinerary.summary}
                       </p>
                     )}
-                    <p className="font-label" style={{ color: "rgba(26,20,16,0.4)", fontSize: "0.68rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                    <p className="font-grotesk" style={{ color: "rgba(26,20,16,0.4)", fontSize: "0.68rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>
                       Saved {formatDate(trip.created_at)}
                     </p>
                   </div>
@@ -187,7 +180,7 @@ export default function Profile() {
                     <button
                       type="button"
                       onClick={() => handleViewTrip(trip)}
-                      className="font-label"
+                      className="font-grotesk"
                       style={{ color: "#9B1B30", fontSize: "0.72rem", letterSpacing: "0.08em", textTransform: "uppercase" }}
                     >
                       View
@@ -195,12 +188,12 @@ export default function Profile() {
 
                     {confirmingDeleteId === trip.id ? (
                       <div className="flex items-center gap-2">
-                        <span className="font-body" style={{ fontSize: "0.78rem", color: "#4A4038" }}>Delete?</span>
+                        <span className="font-dm" style={{ fontSize: "0.78rem", color: "#4A4038" }}>Delete?</span>
                         <button
                           type="button"
                           onClick={() => handleConfirmDelete(trip.id)}
                           disabled={deletingId === trip.id}
-                          className="font-label"
+                          className="font-grotesk"
                           style={{ color: "#9B1B30", fontSize: "0.72rem", fontWeight: 600 }}
                         >
                           {deletingId === trip.id ? "..." : "Yes"}
@@ -208,7 +201,7 @@ export default function Profile() {
                         <button
                           type="button"
                           onClick={() => setConfirmingDeleteId(null)}
-                          className="font-label"
+                          className="font-grotesk"
                           style={{ color: "#4A4038", fontSize: "0.72rem" }}
                         >
                           Cancel

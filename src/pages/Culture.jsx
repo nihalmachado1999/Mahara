@@ -119,7 +119,7 @@ export default function Culture() {
         .phrase-table th { text-align: left; font-family: var(--font-label); font-size: .6rem; font-weight: 600; letter-spacing: .15em; text-transform:uppercase; color: var(--ink-soft); padding: .7rem .9rem; border-bottom: 2px solid rgba(26,20,16,.1); }
         .phrase-table td { padding: .9rem; border-bottom: 1px solid rgba(26,20,16,.07); font-size: .85rem; }
         .phrase-table td:first-child { font-weight: 600; color: var(--ink); }
-        .phrase-table td:nth-child(2) { font-family: var(--font-display); font-style: italic; color: var(--crimson); font-size: 1rem; }
+        .phrase-table td:nth-child(2) { font-family: var(--font-arabic); font-style: normal; font-weight: 500; color: var(--crimson); font-size: 1.05rem; text-align: left; }
         .phrase-table td:last-child { color: var(--ink-soft); font-size: .78rem; }
         .phrase-table tr:hover td { background: var(--cream-warm); }
 
@@ -232,13 +232,13 @@ export default function Culture() {
             <table className="phrase-table">
               <thead><tr><th>English</th><th>Arabic</th><th>Say it like</th></tr></thead>
               <tbody>
-                <tr><td>Hello</td><td>مرحبا</td><td>mar-ha-ba</td></tr>
-                <tr><td>Thank you</td><td>شكرا</td><td>shuk-ran</td></tr>
-                <tr><td>Please</td><td>من فضلك</td><td>min fad-lak</td></tr>
-                <tr><td>Yes / No</td><td>نعم / لا</td><td>na-am / la</td></tr>
-                <tr><td>Welcome</td><td>أهلا وسهلا</td><td>ah-lan wa sah-lan</td></tr>
-                <tr><td>How much?</td><td>بكم؟</td><td>bee-kam</td></tr>
-                <tr><td>Delicious</td><td>لذيذ</td><td>la-theeth</td></tr>
+                <tr><td>Hello</td><td lang="ar" dir="rtl">مرحبا</td><td>mar-ha-ba</td></tr>
+                <tr><td>Thank you</td><td lang="ar" dir="rtl">شكرا</td><td>shuk-ran</td></tr>
+                <tr><td>Please</td><td lang="ar" dir="rtl">من فضلك</td><td>min fad-lak</td></tr>
+                <tr><td>Yes / No</td><td lang="ar" dir="rtl">نعم / لا</td><td>na-am / la</td></tr>
+                <tr><td>Welcome</td><td lang="ar" dir="rtl">أهلا وسهلا</td><td>ah-lan wa sah-lan</td></tr>
+                <tr><td>How much?</td><td lang="ar" dir="rtl">بكم؟</td><td>bee-kam</td></tr>
+                <tr><td>Delicious</td><td lang="ar" dir="rtl">لذيذ</td><td>la-theeth</td></tr>
               </tbody>
             </table>
           </section>

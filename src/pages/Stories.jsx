@@ -1,9 +1,6 @@
 export default function Stories() {
   return (
     <div className="min-h-full w-full flex items-center justify-center" style={{ background: "#FAF6EF", minHeight: "60vh" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=DM+Sans:wght@400&display=swap');
-      `}</style>
       <div className="text-center px-6">
         <div
           style={{
