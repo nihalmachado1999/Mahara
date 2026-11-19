@@ -6,6 +6,48 @@ has never seen this repo can carry it out without re-deriving anything.
 `DESIGN_RULES.md` is law and wins every conflict with this file. Section
 numbers below (§1–§8) refer to it.
 
+## Status (branch `claude/mahara-ui-ux-upgrade-6iblhx`)
+
+| Work | State | Commit |
+| --- | --- | --- |
+| Build fix in `Nav.jsx` (app did not build at `5f405e2`) | done | `96d124e` |
+| This plan | done | `c5d35e2` |
+| **Phase 3** — planner | **done** | `e6a57da` |
+| Phase 1 — single font load, Tajawal, no `@import` / `.font-*` | done | `1d89c3a` |
+| Phase 1 — `Button` (+ `useToast` moved to its own file) | built, adopted in planner | `614ed2e` |
+| Phase 1 — `TextLink` | built, adopted in planner | `1588d5f` |
+| Phase 1 — `EmptyState` | built, adopted in planner, Destinations, Food, Events | `c47b959` |
+| Phase 1 — `PageHeader` | built, adopted in planner, Destinations, Food, Events | `2cf644b` |
+| Phase 1 — `SectionHead` | built, adopted in Home (all five sections) | `d378d5a` |
+| Phase 1 — `FormField` / `FieldGroup` | built, adopted in planner | `16d0e17` |
+| Phase 1 — `Toast` | built in Phase 3, adopted in planner | `e6a57da` |
+| Phase 1 — remaining adoption | **not started** — see list below | |
+| Phase 2 | not started (except items closed by the commits above) | |
+| Phase 4 | not started | |
+
+Remaining Phase 1 adoption, in this order:
+
+1. `Button`: `Profile.jsx`, `PearlingPath.jsx`, `TourFallbackList.jsx`,
+   `InstallPrompt.jsx`, `Login.jsx` (submit and Google buttons), `Nav.jsx`
+   CTA, `Home.jsx` hero CTA (keep `magnetic`), Destinations search button.
+2. `FormField`: `Login.jsx` — replace `FieldLabel` / `TextField` and the
+   `onFocus`/`onBlur` style mutation; keep `PasswordField`'s show/hide.
+3. `PageHeader`: `Profile.jsx`, `Stories.jsx`.
+4. `SectionHead`: `Profile.jsx` "Your Saved Trips", `PearlingPath.jsx` "The
+   Route". **Not** `TravelEssentials.jsx` until its container is moved onto
+   `--pad-x` (Phase 2 L3), or the heading will not line up with the
+   content below it.
+5. `TextLink`: the card links on Home, Destinations, Food, Events.
+   Home's "Learn More →" spans sit inside a card that is itself an `<a>`;
+   use a `<span className="ui-link">` there, not the component.
+6. `EmptyState`: `Profile.jsx` (no saved trips), `Stories.jsx`.
+7. `Toast`: `Profile.jsx` delete errors.
+
+Every QA run so far used a throwaway Playwright script against a build made
+with placeholder env values, with all `/functions/v1/*` calls intercepted.
+**The real edge functions, real auth and the real database have not been
+exercised by any of this work.**
+
 ---
 
 ## 0. Ground truth — read before touching anything
@@ -137,12 +179,17 @@ dividers, timeline rails, and text on ink.
 ### 1.4 Execution order
 
 1. Phase 3 (planner) — done first at the owner's request, styled directly
-   from DESIGN_RULES.md. It creates `ui.css`, `ui/Toast.jsx` and the tokens
-   in 1.1, because the planner needs them.
+   from DESIGN_RULES.md. It creates `ui.css`, `ui/Toast.jsx`,
+   `ui/useToast.js` and the tokens in 1.1, because the planner needs them.
 2. Phase 1 (shared components) — then swaps the planner's local markup for
    the shared components (exact swaps listed in Phase 1).
 3. Phase 2 (deviations) — consumes Phase 1 components.
-4. Phase 4 (navigation and accessibility).
+4. Phase 4 (navigation and accessibility). **Do 5.1 (links → `<Link>`)
+   and 5.2 (`ScrollManager`) in the same commit.** React Router does not
+   reset scroll on navigation, so every `<a href>` turned into a `<Link>`
+   before `ScrollManager` exists opens the next page already scrolled down.
+   For the same reason `SectionHead` and `TextLink` currently take `href`
+   on Home, not `to`.
 
 ---
 
@@ -226,6 +273,9 @@ Source pattern: `src/pages/Destinations.jsx` CSS lines 80–84, markup lines
 Props: `eyebrow` (string), `title` (node; `<em>` renders crimson, not
 italic), `sub` (node), `children` (slot), `reveal` (bool, default `true`,
 adds `reveal`, `reveal d1`, `reveal d2`), `as` (`"h1"` default).
+`.reveal` content stays at opacity 0 until `useScrollEffects()` runs on
+the page, so a page that does not call it (`/plan`, `Profile`, `Stories`)
+must pass `reveal={false}`.
 
 Classes: `.ui-page-header`, `__eyebrow`, `__title`, `__sub`, `__slot`.
 Values are copied from the Destinations rules verbatim: eyebrow Space
@@ -247,7 +297,7 @@ Source: `src/pages/Home.jsx` CSS lines 85–90, markup e.g. lines 236–242.
              action={{ to: "/events", label: "View All" }} />
 ```
 
-Props: `eyebrow`, `title`, `action` (`{ to, label }`, rendered with
+Props: `eyebrow`, `title`, `action` (`{ to | href, label }`, rendered with
 `TextLink`), `as` (`"h2"` default), `flush` (drops the `--pad-x` side
 padding for use inside an already-padded container), `reveal`.
 
@@ -312,7 +362,8 @@ glyph), `Profile.jsx` "View" button, `Login.jsx` "Forgot password?".
 Source: `Destinations.jsx` CSS 118–121, markup 205–209. Pasted again in
 `Food.jsx` 115–118 / 211–215 and `Events.jsx` 125–128 / ~190.
 
-Props: `icon` (node; default is the pearl-in-shell SVG, §4), `title`,
+Props: `icon` (`"pearl"` default — the pearl-in-shell SVG, §4 —,
+`"search"`, or any SVG node), `title`,
 `children` (description), `action` (node).
 
 Classes: `.ui-empty`, `__icon`, `__title`, `__desc`. Created in Phase 3 as
