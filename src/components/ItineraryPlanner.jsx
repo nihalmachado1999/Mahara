@@ -5,10 +5,11 @@ import PlannerForm from "./planner/PlannerForm";
 import PlannerLoading from "./planner/PlannerLoading";
 import DayTabs from "./planner/DayTabs";
 import DayTimeline from "./planner/DayTimeline";
-import { PearlIcon, CheckIcon } from "./planner/icons";
+import { CheckIcon } from "./planner/icons";
 import Toast from "./ui/Toast";
 import { useToast } from "./ui/useToast";
 import Button from "./ui/Button";
+import EmptyState from "./ui/EmptyState";
 import "./planner/planner.css";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -598,14 +599,10 @@ export default function ItineraryPlanner() {
           {status !== "success" && (
             <div className="planner-results__pin">
               {status === "idle" && (
-                <div className="ui-empty planner-idle">
-                  <PearlIcon className="ui-empty__icon" />
-                  <p className="ui-empty__title">No plan yet</p>
-                  <p className="ui-empty__desc">
-                    Set the trip up on the left. Before writing each day we check this week's Manama
-                    forecast, and whether your dates land on a causeway weekend or in Ramadan.
-                  </p>
-                </div>
+                <EmptyState className="planner-idle" title="No plan yet">
+                  Set the trip up on the left. Before writing each day we check this week's Manama
+                  forecast, and whether your dates land on a causeway weekend or in Ramadan.
+                </EmptyState>
               )}
 
               {status === "loading" && <PlannerLoading />}

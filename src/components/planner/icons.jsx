@@ -83,17 +83,3 @@ export function UndoIcon() {
     </svg>
   );
 }
-
-// Pearl in an open oyster shell — the app's signature motif (§4).
-export function PearlIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 48 48" {...svgProps}>
-      <path d="M9 28C9 17 15.5 9 24 9s15 8 15 19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M24 9v5M16.5 11.8l2 4.2M31.5 11.8l-2 4.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M6 28h36" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M6 28c1.5 7.5 9 12 18 12s16.5-4.5 18-12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M15.5 37.5l2-6M24 40v-7.5M32.5 37.5l-2-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="24" cy="22" r="4.5" stroke="currentColor" strokeWidth="1.5" />
-    </svg>
-  );
-}

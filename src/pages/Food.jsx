@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useScrollEffects } from "../hooks/useScrollEffects";
+import EmptyState from "../components/ui/EmptyState";
 
 /* Food — converted from food.html. Same 9 restaurants, same spotlight
    four, same delivery utility row. Filtering wired up for real, same
@@ -112,10 +113,6 @@ export default function Food() {
         .food-card__link { font-family: var(--font-label); font-size: .64rem; font-weight: 600; letter-spacing: .14em; text-transform:uppercase; color: var(--crimson); display:inline-flex; align-items:center; gap:.4rem; border-bottom: 1px solid rgba(155,27,48,.25); padding-bottom: 2px; transition: gap .3s var(--ease), border-color .3s; }
         .food-card:hover .food-card__link { gap: .75rem; border-color: var(--crimson); }
         .food-card__rating { display:flex; align-items:center; gap:.3rem; font-family: var(--font-label); font-size: .7rem; font-weight: 600; color: var(--ink-soft); }
-        .empty-state { text-align:center; padding: 4rem 1rem; }
-        .empty-state__icon { width:48px; height:48px; margin: 0 auto 1.25rem; color: rgba(155,27,48,.3); }
-        .empty-state__title { font-family: var(--font-heading); font-weight: 800; font-size: 1.3rem; color: var(--ink); margin-bottom: .5rem; }
-        .empty-state__desc { font-size: .85rem; color: var(--ink-soft); }
         @media (max-width: 1100px) { .food-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 640px) { .food-grid { grid-template-columns: 1fr; } }
 
@@ -208,11 +205,9 @@ export default function Food() {
             ))}
           </div>
         ) : (
-          <div className="empty-state">
-            <svg className="empty-state__icon" viewBox="0 0 48 48" fill="none"><circle cx="22" cy="22" r="14" stroke="currentColor" strokeWidth="2" /><path d="M32 32l10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-            <p className="empty-state__title">No places match that filter yet</p>
-            <p className="empty-state__desc">We're adding new spots every week — try a different category.</p>
-          </div>
+          <EmptyState icon="search" title="No places match that filter yet">
+            We're adding new spots every week — try a different category.
+          </EmptyState>
         )}
       </section>
     </div>

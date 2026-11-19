@@ -148,30 +148,31 @@
 .ui-input:focus { border-color: var(--crimson); }
 .ui-input::placeholder { color: rgba(var(--ink-rgb), 0.62); }
 
-/* ============ EMPTY STATE ============ */
-.ui-empty { padding: 3.5rem 1.5rem; text-align: center; }
+/* ============ EMPTY STATE ============
+   Values are the Destinations .empty-state, verbatim. */
+.ui-empty { padding: 4rem 1rem; text-align: center; }
 .ui-empty__icon {
   display: block;
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   margin: 0 auto 1.25rem;
-  color: rgba(var(--crimson-rgb), 0.5);
+  color: rgba(var(--crimson-rgb), 0.3);
 }
 .ui-empty__title {
   margin-bottom: 0.5rem;
   font-family: var(--font-heading);
   font-size: 1.3rem;
   font-weight: 800;
-  letter-spacing: -0.01em;
   color: var(--ink);
 }
 .ui-empty__desc {
-  max-width: 44ch;
+  max-width: 48ch;
   margin: 0 auto;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   line-height: 1.65;
   color: var(--ink-soft);
 }
+.ui-empty__action { margin-top: 1.5rem; }
 
 /* ============ TOAST ============
    Sits under the nav: InstallPrompt owns the bottom edge. */

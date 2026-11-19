@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useScrollEffects } from "../hooks/useScrollEffects";
+import EmptyState from "../components/ui/EmptyState";
 
 /* ---------------------------------------------------------------
    Events — converted from events.html. Same 7 events, same tags,
@@ -121,10 +122,6 @@ export default function Events() {
         .event-card__desc { font-size: .8rem; font-weight: 300; color: var(--ink-soft); line-height: 1.6; margin-bottom: .7rem; flex:1; }
         .event-card__link { font-family: var(--font-label); font-size: .64rem; font-weight: 600; letter-spacing: .14em; text-transform:uppercase; color: var(--crimson); display:inline-flex; align-items:center; gap:.4rem; align-self:flex-start; border-bottom: 1px solid rgba(155,27,48,.25); padding-bottom: 2px; transition: gap .3s var(--ease), border-color .3s; }
         .event-card:hover .event-card__link { gap: .75rem; border-color: var(--crimson); }
-        .empty-state { text-align:center; padding: 4rem 1rem; }
-        .empty-state__icon { width:48px; height:48px; margin: 0 auto 1.25rem; color: rgba(155,27,48,.3); }
-        .empty-state__title { font-family: var(--font-heading); font-weight: 800; font-size: 1.3rem; color: var(--ink); margin-bottom: .5rem; }
-        .empty-state__desc { font-size: .85rem; color: var(--ink-soft); }
         @media (max-width: 1100px) { .events-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 640px) { .events-grid { grid-template-columns: 1fr; } }
 
@@ -187,11 +184,9 @@ export default function Events() {
             ))}
           </div>
         ) : (
-          <div className="empty-state">
-            <svg className="empty-state__icon" viewBox="0 0 48 48" fill="none"><circle cx="22" cy="22" r="14" stroke="currentColor" strokeWidth="2" /><path d="M32 32l10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-            <p className="empty-state__title">Nothing here yet</p>
-            <p className="empty-state__desc">Try a different tab or category — or check back as new events get added.</p>
-          </div>
+          <EmptyState icon="search" title="Nothing here yet">
+            Try a different tab or category — or check back as new events get added.
+          </EmptyState>
         )}
       </section>
     </div>
