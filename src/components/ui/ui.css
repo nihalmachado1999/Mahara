@@ -49,6 +49,47 @@
   color: var(--ink-soft);
 }
 
+/* ============ SECTION HEAD ============
+   Home .section__head values, verbatim. */
+.ui-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2.25rem;
+  padding: 0 var(--pad-x);
+}
+.ui-section-head--flush { padding: 0; }
+.ui-section-head__eyebrow {
+  display: block;
+  margin-bottom: 0.55rem;
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--crimson);
+}
+.ui-section-head__title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.9rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.ui-section-head__title em { font-style: normal; color: var(--crimson); }
+/* Home's .section__viewall was a touch larger than the base .ui-link. */
+.ui-link.ui-section-head__action {
+  gap: 0.5rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  border-bottom-color: rgba(var(--crimson-rgb), 0.3);
+}
+.ui-link.ui-section-head__action:hover { gap: 0.9rem; }
+
 /* ============ BUTTONS ============
    primary  = the one main action: crimson fill, pill (§5)
    secondary / quiet = 8px radius */

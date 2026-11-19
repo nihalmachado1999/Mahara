@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useScrollEffects } from "../hooks/useScrollEffects";
+import SectionHead from "../components/ui/SectionHead";
 
 /* ---------------------------------------------------------------
    Home — converted from index.html. Visual output is unchanged
@@ -82,12 +83,6 @@ export default function Home() {
         .photo-credit { position:absolute; bottom:6px; left:8px; z-index:3; font-family: var(--font-label); font-size:.55rem; color: rgba(255,255,255,.5); }
 
         .section { padding: clamp(3rem, 6vw, 5.5rem) 0; }
-        .section__head { padding: 0 var(--pad-x); display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 2.25rem; gap: 1.5rem; flex-wrap:wrap; }
-        .section__eyebrow { font-family: var(--font-label); font-size: .62rem; font-weight: 600; letter-spacing: .28em; text-transform:uppercase; color: var(--crimson); margin-bottom: .55rem; display:block; }
-        .section__title { font-family: var(--font-heading); font-weight: 800; font-size: clamp(1.9rem, 4vw, 3rem); line-height: 1.05; color: var(--ink); letter-spacing: -.02em; }
-        .section__title em { font-style: normal; color: var(--crimson); }
-        .section__viewall { font-family: var(--font-label); font-size: .68rem; font-weight: 600; letter-spacing: .12em; text-transform:uppercase; color: var(--crimson); display:flex; align-items:center; gap:.5rem; white-space:nowrap; border-bottom: 1px solid rgba(155,27,48,.3); padding-bottom: 2px; transition: gap .3s var(--ease), border-color .3s; }
-        .section__viewall:hover { gap: .9rem; border-color: var(--crimson); }
 
         .filters { display:flex; gap: clamp(1.5rem, 4vw, 3.5rem); padding: 0 var(--pad-x); overflow-x:auto; scrollbar-width:none; border-bottom: 1px solid rgba(26,20,16,.08); margin-bottom: 2.5rem; }
         .filters::-webkit-scrollbar{display:none;}
@@ -233,13 +228,11 @@ export default function Home() {
 
       {/* DESTINATIONS */}
       <section className="section" id="destinations">
-        <div className="section__head reveal">
-          <div>
-            <span className="section__eyebrow">Where to go</span>
-            <h2 className="section__title">Explore <em>Bahrain</em></h2>
-          </div>
-          <a href="/destinations" className="section__viewall">View All <ArrowIcon /></a>
-        </div>
+        <SectionHead
+          eyebrow="Where to go"
+          title={<>Explore <em>Bahrain</em></>}
+          action={{ href: "/destinations", label: "View All" }}
+        />
 
         <div className="filters reveal d1">
           <button className="filter active">
@@ -320,12 +313,10 @@ export default function Home() {
 
       {/* BAHRAIN IN NUMBERS */}
       <section className="section">
-        <div className="section__head reveal">
-          <div>
-            <span className="section__eyebrow">By The Numbers</span>
-            <h2 className="section__title">Bahrain in <em>Numbers</em></h2>
-          </div>
-        </div>
+        <SectionHead
+          eyebrow="By The Numbers"
+          title={<>Bahrain in <em>Numbers</em></>}
+        />
         <div className="numbers-grid reveal d1">
           <div className="num-card num-card--big">
             <b data-count="4000" data-suffix="+">0</b>
@@ -348,13 +339,11 @@ export default function Home() {
 
       {/* EVENTS */}
       <section className="section events">
-        <div className="section__head reveal">
-          <div>
-            <span className="section__eyebrow">This Month</span>
-            <h2 className="section__title">What's <em>On</em></h2>
-          </div>
-          <a href="/events" className="section__viewall">View All <ArrowIcon /></a>
-        </div>
+        <SectionHead
+          eyebrow="This Month"
+          title={<>What's <em>On</em></>}
+          action={{ href: "/events", label: "View All" }}
+        />
 
         <div className="events-row">
           <article className="event-card reveal">
@@ -397,13 +386,11 @@ export default function Home() {
 
       {/* STORIES & GUIDES */}
       <section className="section">
-        <div className="section__head reveal">
-          <div>
-            <span className="section__eyebrow">Read Before You Go</span>
-            <h2 className="section__title">Stories & <em>Guides</em></h2>
-          </div>
-          <a href="/stories" className="section__viewall">View All <ArrowIcon /></a>
-        </div>
+        <SectionHead
+          eyebrow="Read Before You Go"
+          title={<>Stories & <em>Guides</em></>}
+          action={{ href: "/stories", label: "View All" }}
+        />
 
         <div className="stories-grid">
           <a href="/stories" className="story-card reveal">
@@ -437,12 +424,10 @@ export default function Home() {
 
       {/* KNOW BEFORE YOU GO */}
       <section className="section kbyg">
-        <div className="section__head reveal">
-          <div>
-            <span className="section__eyebrow">Travel Essentials</span>
-            <h2 className="section__title">Know Before <em>You Go</em></h2>
-          </div>
-        </div>
+        <SectionHead
+          eyebrow="Travel Essentials"
+          title={<>Know Before <em>You Go</em></>}
+        />
         <div className="kbyg__grid">
           <a href="/plan#visa-entry" className="kbyg__card reveal">
             <div className="kbyg__icon">
