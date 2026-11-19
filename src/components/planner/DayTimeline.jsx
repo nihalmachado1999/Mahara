@@ -1,5 +1,6 @@
 import { TimeIcon, PinIcon, UndoIcon } from "./icons";
 import Button from "../ui/Button";
+import TextLink from "../ui/TextLink";
 
 /* ---------------------------------------------------------------
    One day of the itinerary as a vertical timeline.
@@ -149,9 +150,9 @@ export default function DayTimeline({
                         )}
                       </div>
                     ) : (
-                      <button type="button" className="ui-link" onClick={() => swap.setOpenKey(swapKey)}>
+                      <TextLink arrow={false} onClick={() => swap.setOpenKey(swapKey)}>
                         Swap this
-                      </button>
+                      </TextLink>
                     )}
                   </div>
                 )}
