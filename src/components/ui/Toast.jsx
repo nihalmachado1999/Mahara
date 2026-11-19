@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 /* ---------------------------------------------------------------
    Toast — one small status message at a time.
 
-     const { toast, showToast, dismissToast } = useToast();
+     const { toast, showToast, dismissToast } = useToast();   // ./useToast
      showToast({ message, tone, action: { label, onClick }, link: { label, to } });
      <Toast toast={toast} onDismiss={dismissToast} />
 
@@ -12,28 +12,6 @@ import { Link } from "react-router-dom";
    Errors stay until dismissed. Everything else auto-dismisses, and
    the timer pauses while the toast is hovered or focused.
 ------------------------------------------------------------------ */
-
-const DEFAULT_MS = 5000;
-const WITH_ACTION_MS = 8000;
-
-export function useToast() {
-  const [toast, setToast] = useState(null);
-  const idRef = useRef(0);
-
-  const showToast = useCallback((next) => {
-    idRef.current += 1;
-    const tone = next.tone || "neutral";
-    const hasAction = Boolean(next.action || next.link);
-    let duration = hasAction ? WITH_ACTION_MS : DEFAULT_MS;
-    if (tone === "error") duration = null;
-    if (next.duration !== undefined) duration = next.duration;
-    setToast({ ...next, tone, duration, id: idRef.current });
-  }, []);
-
-  const dismissToast = useCallback(() => setToast(null), []);
-
-  return { toast, showToast, dismissToast };
-}
 
 function CloseIcon() {
   return (

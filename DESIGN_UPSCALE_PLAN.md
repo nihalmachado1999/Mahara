@@ -355,6 +355,7 @@ search.
 **Built in Phase 3.** Phase 1 only adopts it elsewhere.
 
 ```jsx
+// import Toast from "./ui/Toast"; import { useToast } from "./ui/useToast";
 const { toast, showToast, dismissToast } = useToast();
 showToast({ message, tone: "neutral" | "success" | "error",
             action: { label, onClick }, link: { label, to }, duration });
@@ -526,7 +527,8 @@ to, and the reference for anyone changing it later.
 | `src/components/planner/DayTimeline.jsx` | One day: header, change note, stops, swap form, replan form, undo. |
 | `src/components/planner/icons.jsx` | Planner SVG icons, all `currentColor`. |
 | `src/components/planner/planner.css` | Planner layout and timeline. |
-| `src/components/ui/Toast.jsx` | Shared toast + `useToast`. |
+| `src/components/ui/Toast.jsx` | Shared toast component. |
+| `src/components/ui/useToast.js` | Toast state hook (separate file so fast refresh works). |
 | `src/components/ui/ui.css` | Shared classes: buttons, link, field, empty state, toast. |
 | `src/index.css` | Tokens from 1.1. |
 | `src/main.jsx` | Imports `ui.css`. |

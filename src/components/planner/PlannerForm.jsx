@@ -1,5 +1,6 @@
 import { useId } from "react";
 import { MinusIcon, PlusIcon } from "./icons";
+import Button from "../ui/Button";
 
 /* The trip form. Presentational only: every value and setter comes from
    ItineraryPlanner, which still owns the state and builds the payload.
@@ -141,9 +142,9 @@ export default function PlannerForm({
         </div>
       </fieldset>
 
-      <button type="submit" className="ui-btn ui-btn--primary ui-btn--block" disabled={status === "loading"}>
+      <Button type="submit" fullWidth disabled={status === "loading"}>
         {status === "loading" ? "Building your itinerary…" : "Generate itinerary"}
-      </button>
+      </Button>
     </form>
   );
 }

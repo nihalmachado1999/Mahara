@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect, useId } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import PlannerForm from "./planner/PlannerForm";
 import PlannerLoading from "./planner/PlannerLoading";
 import DayTabs from "./planner/DayTabs";
 import DayTimeline from "./planner/DayTimeline";
 import { PearlIcon, CheckIcon } from "./planner/icons";
-import Toast, { useToast } from "./ui/Toast";
+import Toast from "./ui/Toast";
+import { useToast } from "./ui/useToast";
+import Button from "./ui/Button";
 import "./planner/planner.css";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -612,9 +614,9 @@ export default function ItineraryPlanner() {
                 <div className="planner-error" role="alert">
                   <h2 className="planner-error__title">Couldn't generate that itinerary</h2>
                   <p className="planner-error__msg">{errorMsg}</p>
-                  <button type="button" onClick={handleSubmit} className="ui-btn ui-btn--primary ui-btn--sm">
+                  <Button size="sm" onClick={handleSubmit}>
                     Try again
-                  </button>
+                  </Button>
 
                   {rawDebug && (
                     <details className="planner-debug">
@@ -716,8 +718,8 @@ export default function ItineraryPlanner() {
               )}
 
               <div className="planner-actions">
-                <button
-                  type="button"
+                <Button
+                  variant="quiet"
                   onClick={() => {
                     setStatus("idle");
                     setItinerary(null);
@@ -726,25 +728,22 @@ export default function ItineraryPlanner() {
                     dismissToast();
                     if (rootRef.current && isAboveViewport(rootRef.current)) scrollToStart(rootRef.current);
                   }}
-                  className="ui-btn ui-btn--quiet"
                 >
                   Plan another trip
-                </button>
+                </Button>
 
                 {saveState === "needs-login" ? (
-                  <Link to="/login" className="ui-btn ui-btn--secondary">
+                  <Button to="/login" variant="secondary">
                     Log in to save
-                  </Link>
+                  </Button>
                 ) : (
-                  <button
-                    type="button"
+                  <Button
                     onClick={handleSaveItinerary}
                     disabled={saveState === "saving" || saveState === "saved"}
-                    className="ui-btn ui-btn--primary"
                   >
                     {saveState === "saved" && <CheckIcon />}
                     {saveState === "saving" ? "Saving..." : saveState === "saved" ? "Saved" : "Save this itinerary"}
-                  </button>
+                  </Button>
                 )}
               </div>
             </>

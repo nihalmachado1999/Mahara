@@ -66,6 +66,8 @@
 .ui-btn--quiet:hover:not(:disabled) { background: var(--cream-warm); }
 .ui-btn--sm { font-size: 0.68rem; padding: 0.55rem 1.1rem; }
 .ui-btn--block { width: 100%; }
+.ui-btn__spinner { flex-shrink: 0; animation: ui-spin 0.8s linear infinite; }
+@keyframes ui-spin { to { transform: rotate(360deg); } }
 
 /* ============ TEXT LINK ============
    The "View All" / "Discover More" pattern. The ::after extends the
@@ -277,5 +279,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ui-toast { animation: none; }
+  .ui-btn__spinner { animation: none; }
   .ui-btn, .ui-link, .ui-input, .ui-toast__close { transition: none; }
 }

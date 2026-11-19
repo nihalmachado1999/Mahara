@@ -1,4 +1,5 @@
 import { TimeIcon, PinIcon, UndoIcon } from "./icons";
+import Button from "../ui/Button";
 
 /* ---------------------------------------------------------------
    One day of the itinerary as a vertical timeline.
@@ -125,22 +126,21 @@ export default function DayTimeline({
                           placeholder="Why swap this? (optional)"
                         />
                         <div className="planner-inline-form__actions">
-                          <button
-                            type="button"
-                            className="ui-btn ui-btn--primary ui-btn--sm"
+                          <Button
+                            size="sm"
                             onClick={() => swap.onConfirm(dayIdx, aIdx)}
                             disabled={swapping}
                           >
                             {swapping ? "Swapping…" : "Confirm swap"}
-                          </button>
-                          <button
-                            type="button"
-                            className="ui-btn ui-btn--quiet ui-btn--sm"
+                          </Button>
+                          <Button
+                            variant="quiet"
+                            size="sm"
                             onClick={() => swap.setOpenKey(null)}
                             disabled={swapping}
                           >
                             Cancel
-                          </button>
+                          </Button>
                         </div>
                         {swap.errors[swapKey] && (
                           <p className="ui-field__error" role="alert">
@@ -178,44 +178,43 @@ export default function DayTimeline({
             />
             <p className="ui-field__hint">Stops you have ticked off stay as they are.</p>
             <div className="planner-inline-form__actions">
-              <button
-                type="button"
-                className="ui-btn ui-btn--primary ui-btn--sm"
+              <Button
+                size="sm"
                 onClick={() => replan.onConfirm(dayIdx)}
                 disabled={replan.busy}
               >
                 {replan.busy ? "Replanning…" : "Confirm replan"}
-              </button>
-              <button
-                type="button"
-                className="ui-btn ui-btn--quiet ui-btn--sm"
+              </Button>
+              <Button
+                variant="quiet"
+                size="sm"
                 onClick={() => replan.setOpenDay(null)}
                 disabled={replan.busy}
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
         ) : (
           <div className="planner-day__actions">
-            <button
-              type="button"
-              className="ui-btn ui-btn--secondary ui-btn--sm"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => replan.setOpenDay(dayIdx)}
               disabled={remainingCount === 0}
             >
               Replan rest of this day
-            </button>
+            </Button>
             {undo && (
-              <button
-                type="button"
-                className="ui-btn ui-btn--quiet ui-btn--sm"
+              <Button
+                variant="quiet"
+                size="sm"
                 onClick={() => onUndo(dayIdx)}
                 disabled={replan.busy || swapBusyOnThisDay}
               >
                 <UndoIcon />
                 Undo last {undo.kind === "swap" ? "swap" : "replan"}
-              </button>
+              </Button>
             )}
           </div>
         )}
