@@ -17,6 +17,38 @@
   border: 0;
 }
 
+/* ============ PAGE HEADER ============
+   Destinations .page-header values, verbatim. The subtitle width was
+   540 / 620 / 560px on Destinations / Food / Events; unified at 600px. */
+.ui-page-header { padding: clamp(3rem, 6vw, 4.5rem) var(--pad-x) clamp(2rem, 4vw, 3rem); }
+.ui-page-header__eyebrow {
+  display: block;
+  margin-bottom: 0.6rem;
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--crimson);
+}
+.ui-page-header__title {
+  margin-bottom: 0.9rem;
+  font-family: var(--font-heading);
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.ui-page-header__title em { font-style: normal; color: var(--crimson); }
+.ui-page-header__sub {
+  max-width: 600px;
+  font-size: 0.95rem;
+  font-weight: 300;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
 /* ============ BUTTONS ============
    primary  = the one main action: crimson fill, pill (§5)
    secondary / quiet = 8px radius */

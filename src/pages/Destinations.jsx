@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useScrollEffects } from "../hooks/useScrollEffects";
+import PageHeader from "../components/ui/PageHeader";
 import EmptyState from "../components/ui/EmptyState";
 
 /* ---------------------------------------------------------------
@@ -78,11 +79,6 @@ export default function Destinations() {
   return (
     <div>
       <style>{`
-        .page-header { padding: clamp(3rem,6vw,4.5rem) var(--pad-x) clamp(2rem,4vw,3rem); }
-        .page-header__eyebrow { font-family: var(--font-label); font-size: .65rem; font-weight: 600; letter-spacing: .3em; text-transform:uppercase; color: var(--crimson); margin-bottom: .6rem; display:block; }
-        .page-header__title { font-family: var(--font-heading); font-weight: 800; font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: 1.02; color: var(--ink); letter-spacing: -.02em; margin-bottom: .9rem; }
-        .page-header__title em { font-style: normal; color: var(--crimson); }
-        .page-header__sub { font-size: .95rem; font-weight: 300; color: var(--ink-soft); max-width: 540px; line-height: 1.7; }
         .search-bar { margin-top: 1.75rem; display:flex; align-items:center; gap: .75rem; max-width: 480px; background: var(--white); border: 1px solid rgba(26,20,16,.1); border-radius: 100px; padding: .2rem .2rem .2rem 1.1rem; }
         .search-bar svg { flex-shrink:0; color: var(--ink-soft); }
         .search-bar input { flex:1; border:none; outline:none; background:none; font-family: var(--font-body); font-size: .85rem; color: var(--ink); padding: .65rem 0; }
@@ -134,10 +130,11 @@ export default function Destinations() {
         .scene-riffa { background: radial-gradient(ellipse 65% 50% at 40% 15%, rgba(255,200,150,.4) 0%, transparent 55%), linear-gradient(170deg, #D8B888 0%, #B88A52 35%, #8A5E32 70%, #5C3A1C 100%); }
       `}</style>
 
-      <header className="page-header">
-        <span className="page-header__eyebrow reveal">Where To Go</span>
-        <h1 className="page-header__title reveal d1">Explore <em>Bahrain</em></h1>
-        <p className="page-header__sub reveal d2">Thirty-three islands, four thousand years of history, and a coastline that turns pink every winter. Filter by what moves you — or just start scrolling.</p>
+      <PageHeader
+        eyebrow="Where To Go"
+        title={<>Explore <em>Bahrain</em></>}
+        sub="Thirty-three islands, four thousand years of history, and a coastline that turns pink every winter. Filter by what moves you — or just start scrolling."
+      >
         <div className="search-bar reveal d3">
           <SearchIcon />
           <input
@@ -148,7 +145,7 @@ export default function Destinations() {
           />
           <button type="button">Search</button>
         </div>
-      </header>
+      </PageHeader>
 
       <div className="filter-bar">
         <div className="filter-bar__inner">

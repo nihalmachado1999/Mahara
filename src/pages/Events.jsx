@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useScrollEffects } from "../hooks/useScrollEffects";
+import PageHeader from "../components/ui/PageHeader";
 import EmptyState from "../components/ui/EmptyState";
 
 /* ---------------------------------------------------------------
@@ -85,11 +86,6 @@ export default function Events() {
   return (
     <div>
       <style>{`
-        .page-header { padding: clamp(3rem,6vw,4.5rem) var(--pad-x) clamp(2rem,4vw,3rem); }
-        .page-header__eyebrow { font-family: var(--font-label); font-size: .65rem; font-weight: 600; letter-spacing: .3em; text-transform:uppercase; color: var(--crimson); margin-bottom: .6rem; display:block; }
-        .page-header__title { font-family: var(--font-heading); font-weight: 800; font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: 1.02; color: var(--ink); letter-spacing: -.02em; margin-bottom: .9rem; }
-        .page-header__title em { font-style: normal; color: var(--crimson); }
-        .page-header__sub { font-size: .95rem; font-weight: 300; color: var(--ink-soft); max-width: 560px; line-height: 1.7; }
 
         .tab-row { display:flex; gap: .5rem; padding: 0 var(--pad-x); margin-bottom: 1rem; }
         .tab { font-family: var(--font-label); font-size: .74rem; font-weight: 600; letter-spacing: .05em; padding: .7rem 1.3rem; border-radius: 8px; color: var(--ink-soft); transition: background .25s, color .25s; background:none; border:none; }
@@ -139,11 +135,11 @@ export default function Events() {
         .scene-family { background: radial-gradient(ellipse 55% 45% at 50% 20%, rgba(180,235,220,.4) 0%, transparent 55%), linear-gradient(165deg, #0C2426 0%, #1E4A4E 40%, #3A7478 75%, #5C9EA0 100%); }
       `}</style>
 
-      <header className="page-header">
-        <span className="page-header__eyebrow reveal">This Month</span>
-        <h1 className="page-header__title reveal d1">What's <em>On</em></h1>
-        <p className="page-header__sub reveal d2">From F1 night races to souq night markets — everything worth showing up for, updated as it happens.</p>
-      </header>
+      <PageHeader
+        eyebrow="This Month"
+        title={<>What's <em>On</em></>}
+        sub="From F1 night races to souq night markets — everything worth showing up for, updated as it happens."
+      />
 
       <div className="tab-row reveal d3">
         {TABS.map((t) => (

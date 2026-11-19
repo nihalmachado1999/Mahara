@@ -10,6 +10,7 @@ import Toast from "./ui/Toast";
 import { useToast } from "./ui/useToast";
 import Button from "./ui/Button";
 import EmptyState from "./ui/EmptyState";
+import PageHeader from "./ui/PageHeader";
 import "./planner/planner.css";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -554,15 +555,17 @@ export default function ItineraryPlanner() {
 
   return (
     <div className="planner" ref={rootRef}>
-      <header className="planner-head">
-        <span className="planner-eyebrow">Plan your trip</span>
-        <h1 className="planner-head__title">
-          Build your Bahrain <em>itinerary</em>
-        </h1>
-        <p className="planner-head__sub">
-          Tell us the shape of the trip, we'll hand back a day-by-day plan.
-        </p>
-      </header>
+      {/* reveal={false}: /plan does not run useScrollEffects. */}
+      <PageHeader
+        reveal={false}
+        eyebrow="Plan your trip"
+        title={
+          <>
+            Build your Bahrain <em>itinerary</em>
+          </>
+        }
+        sub="Tell us the shape of the trip, we'll hand back a day-by-day plan."
+      />
 
       <div className="planner-grid">
         <div className="planner-form-col">

@@ -7,8 +7,7 @@
 
 .planner { background: var(--cream); }
 
-/* ============ HEADER — Destinations .page-header pattern ============ */
-.planner-head { padding: clamp(3rem, 6vw, 4.5rem) var(--pad-x) clamp(1.75rem, 3.5vw, 2.5rem); }
+/* ============ EYEBROW — results head, loading, tips ============ */
 .planner-eyebrow {
   display: block;
   margin-bottom: 0.6rem;
@@ -18,23 +17,6 @@
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--crimson);
-}
-.planner-head__title {
-  margin-bottom: 0.9rem;
-  font-family: var(--font-heading);
-  font-size: clamp(2.2rem, 5.2vw, 4rem);
-  font-weight: 800;
-  line-height: 1.04;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-}
-.planner-head__title em { font-style: normal; color: var(--crimson); }
-.planner-head__sub {
-  max-width: 540px;
-  font-size: 0.95rem;
-  font-weight: 300;
-  line-height: 1.7;
-  color: var(--ink-soft);
 }
 
 /* ============ GRID — side by side from 900px, stacked below ============ */

@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useScrollEffects } from "../hooks/useScrollEffects";
+import PageHeader from "../components/ui/PageHeader";
 import EmptyState from "../components/ui/EmptyState";
 
 /* Food — converted from food.html. Same 9 restaurants, same spotlight
@@ -58,11 +59,6 @@ export default function Food() {
   return (
     <div>
       <style>{`
-        .page-header { padding: clamp(3rem,6vw,4.5rem) var(--pad-x) clamp(2rem,4vw,3rem); }
-        .page-header__eyebrow { font-family: var(--font-label); font-size: .65rem; font-weight: 600; letter-spacing: .3em; text-transform:uppercase; color: var(--crimson); margin-bottom: .6rem; display:block; }
-        .page-header__title { font-family: var(--font-heading); font-weight: 800; font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: 1.02; color: var(--ink); letter-spacing: -.02em; margin-bottom: .9rem; }
-        .page-header__title em { font-style: normal; color: var(--crimson); }
-        .page-header__sub { font-size: .95rem; font-weight: 300; color: var(--ink-soft); max-width: 620px; line-height: 1.7; }
         .filter-bar { position: sticky; top: 72px; z-index: 50; background: var(--cream); border-bottom: 1px solid rgba(26,20,16,.08); padding: 0 var(--pad-x); }
         .filter-bar__inner { display:flex; align-items:center; justify-content:space-between; gap: 1.5rem; flex-wrap: wrap; padding: 1rem 0; }
         .filters { display:flex; gap: clamp(1.25rem, 3vw, 2.5rem); overflow-x:auto; scrollbar-width:none; }
@@ -130,11 +126,11 @@ export default function Food() {
         .scene-dessert { background: radial-gradient(ellipse 50% 45% at 55% 25%, rgba(255,210,220,.4) 0%, transparent 55%), linear-gradient(160deg, #2A1218 0%, #5C2432 40%, #8A3E52 75%, #B8687C 100%); }
       `}</style>
 
-      <header className="page-header">
-        <span className="page-header__eyebrow reveal">Where To Eat</span>
-        <h1 className="page-header__title reveal d1">A Taste of <em>Bahrain</em></h1>
-        <p className="page-header__sub reveal d2">From machboos simmered since morning to the harees stall that's been on the same corner for forty years — this is where locals actually eat, not just where tourists are pointed.</p>
-      </header>
+      <PageHeader
+        eyebrow="Where To Eat"
+        title={<>A Taste of <em>Bahrain</em></>}
+        sub="From machboos simmered since morning to the harees stall that's been on the same corner for forty years — this is where locals actually eat, not just where tourists are pointed."
+      />
 
       <div className="filter-bar">
         <div className="filter-bar__inner">
