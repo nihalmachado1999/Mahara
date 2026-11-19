@@ -1,6 +1,6 @@
-import { useId } from "react";
 import { MinusIcon, PlusIcon } from "./icons";
 import Button from "../ui/Button";
+import FormField, { FieldGroup } from "../ui/FormField";
 
 /* The trip form. Presentational only: every value and setter comes from
    ItineraryPlanner, which still owns the state and builds the payload.
@@ -40,8 +40,7 @@ function Segmented({ legend, options, value, onChange }) {
   // Four options read badly four-across in a 400px column, so they go 2 × 2.
   const cols = options.length > 3 ? 2 : options.length;
   return (
-    <fieldset className="ui-field">
-      <legend className="ui-field__label">{legend}</legend>
+    <FieldGroup legend={legend}>
       <div className="planner-seg" style={{ "--planner-seg-cols": cols }}>
         {options.map((opt) => (
           <button
@@ -56,7 +55,7 @@ function Segmented({ legend, options, value, onChange }) {
           </button>
         ))}
       </div>
-    </fieldset>
+    </FieldGroup>
   );
 }
 
@@ -76,12 +75,9 @@ export default function PlannerForm({
   status,
   onSubmit,
 }) {
-  const dateId = useId();
-
   return (
     <form className="planner-form" onSubmit={onSubmit} aria-label="Trip details">
-      <fieldset className="ui-field">
-        <legend className="ui-field__label">Trip length</legend>
+      <FieldGroup legend="Trip length">
         <div className="planner-stepper">
           <button
             type="button"
@@ -105,28 +101,23 @@ export default function PlannerForm({
             <PlusIcon />
           </button>
         </div>
-      </fieldset>
+      </FieldGroup>
 
-      <div className="ui-field">
-        <label className="ui-field__label" htmlFor={dateId}>
-          Start date
-        </label>
+      <FormField label="Start date">
         <input
-          id={dateId}
           type="date"
           className="ui-input"
           value={startDate}
           min={new Date().toISOString().split("T")[0]}
           onChange={(e) => setStartDate(e.target.value)}
         />
-      </div>
+      </FormField>
 
       <Segmented legend="Budget tier" options={BUDGET_TIERS} value={budgetTier} onChange={setBudgetTier} />
       <Segmented legend="Pace" options={PACE_OPTIONS} value={pace} onChange={setPace} />
       <Segmented legend="Traveling as" options={FAMILY_OPTIONS} value={familyType} onChange={setFamilyType} />
 
-      <fieldset className="ui-field">
-        <legend className="ui-field__label">Interests</legend>
+      <FieldGroup legend="Interests">
         <div className="planner-chips">
           {INTERESTS.map((opt) => (
             <button
@@ -140,7 +131,7 @@ export default function PlannerForm({
             </button>
           ))}
         </div>
-      </fieldset>
+      </FieldGroup>
 
       <Button type="submit" fullWidth disabled={status === "loading"}>
         {status === "loading" ? "Building your itinerary…" : "Generate itinerary"}

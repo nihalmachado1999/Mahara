@@ -1,6 +1,7 @@
 import { TimeIcon, PinIcon, UndoIcon } from "./icons";
 import Button from "../ui/Button";
 import TextLink from "../ui/TextLink";
+import FormField from "../ui/FormField";
 
 /* ---------------------------------------------------------------
    One day of the itinerary as a vertical timeline.
@@ -114,18 +115,17 @@ export default function DayTimeline({
                   <div className="planner-stop__swap">
                     {swap.openKey === swapKey ? (
                       <div className="planner-inline-form">
-                        <label className="ui-sr-only" htmlFor={swapInputId}>
-                          Why swap {act.title}? Optional.
-                        </label>
-                        <input
-                          id={swapInputId}
-                          type="text"
-                          className="ui-input"
-                          value={swap.drafts[swapKey] || ""}
-                          onChange={(e) => swap.setDrafts((prev) => ({ ...prev, [swapKey]: e.target.value }))}
-                          onKeyDown={(e) => submitOnEnter(e, swapping, () => swap.onConfirm(dayIdx, aIdx))}
-                          placeholder="Why swap this? (optional)"
-                        />
+                        <FormField hideLabel label={`Why swap ${act.title}? Optional.`}>
+                          <input
+                            id={swapInputId}
+                            type="text"
+                            className="ui-input"
+                            value={swap.drafts[swapKey] || ""}
+                            onChange={(e) => swap.setDrafts((prev) => ({ ...prev, [swapKey]: e.target.value }))}
+                            onKeyDown={(e) => submitOnEnter(e, swapping, () => swap.onConfirm(dayIdx, aIdx))}
+                            placeholder="Why swap this? (optional)"
+                          />
+                        </FormField>
                         <div className="planner-inline-form__actions">
                           <Button
                             size="sm"
@@ -165,19 +165,17 @@ export default function DayTimeline({
       <footer className="planner-day__foot">
         {replan.isOpen ? (
           <div className="planner-inline-form">
-            <label className="ui-field__label" htmlFor={replanInputId}>
-              What changed?
-            </label>
-            <input
-              id={replanInputId}
-              type="text"
-              className="ui-input"
-              value={replan.draft}
-              onChange={(e) => replan.setDrafts((prev) => ({ ...prev, [dayIdx]: e.target.value }))}
-              onKeyDown={(e) => submitOnEnter(e, replan.busy, () => replan.onConfirm(dayIdx))}
-              placeholder="What changed? e.g. running late, too hot, want something different"
-            />
-            <p className="ui-field__hint">Stops you have ticked off stay as they are.</p>
+            <FormField label="What changed?" hint="Stops you have ticked off stay as they are.">
+              <input
+                id={replanInputId}
+                type="text"
+                className="ui-input"
+                value={replan.draft}
+                onChange={(e) => replan.setDrafts((prev) => ({ ...prev, [dayIdx]: e.target.value }))}
+                onKeyDown={(e) => submitOnEnter(e, replan.busy, () => replan.onConfirm(dayIdx))}
+                placeholder="What changed? e.g. running late, too hot, want something different"
+              />
+            </FormField>
             <div className="planner-inline-form__actions">
               <Button
                 size="sm"
